@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/', // Adjust if your app is served from a subpath
+  base: './', // Adjusted base path for Cloudflare deployment
   build: {
     // Additional build options if necessary
   },
