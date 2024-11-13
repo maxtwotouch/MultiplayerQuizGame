@@ -71,7 +71,7 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return code;
   };
 
-  const createLobby = async (name: string) => {
+  const createLobby = async () => {
     if (!user) throw new Error('User not authenticated');
 
     const code = await generateLobbyCode();
@@ -112,7 +112,7 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
-  const joinLobby = async (name: string, code: string) => {
+  const joinLobby = async (code: string) => {
     if (!user) throw new Error('User not authenticated');
 
     try {

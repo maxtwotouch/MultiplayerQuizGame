@@ -1,16 +1,35 @@
 // src/pages/Quiz.tsx
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useQuiz } from '../contexts/QuizContext';
 import { useNavigate } from 'react-router-dom';
 import { useLobby } from '../contexts/LobbyContext';
-import { useAuth } from '../contexts/AuthContext';
 import Question from '../components/Quiz/Question';
-import { supabase } from '../supabaseClient'; // Ensure supabase is correctly imported
+import { supabase } from '../supabaseClient';
+
+interface LobbyUpdatePayload {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  schema: string;
+  table: string;
+  commit_timestamp: string;
+  new: {
+    id: string;
+    code: string;
+    host_id: string;
+    status: 'waiting' | 'in progress' | 'completed';
+    // Add other relevant fields
+  };
+  old: {
+    id: string;
+    code: string;
+    host_id: string;
+    status: 'waiting' | 'in progress' | 'completed';
+    // Add other relevant fields
+  };
+}
 
 const Quiz: React.FC = () => {
   const { questions, currentQuestionIndex, submitAnswer, isQuizOver, score, fetchQuestions } = useQuiz();
   const { lobby } = useLobby();
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,18 +43,27 @@ const Quiz: React.FC = () => {
       initializeQuiz();
     }
 
-    // Subscribe to lobby status changes
-    const subscription = supabase
-      .from(`lobbies:id=eq.${lobby.id}`)
-      .on('UPDATE', (payload) => {
-        if (payload.new.status === 'completed') {
-          navigate('/results');
+    // Subscribe to lobby status changes using Supabase v2's channel
+    const channel = supabase
+      .channel(`lobby-${lobby.id}`)
+      .on(
+        'postgres_changes' as any,
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'lobbies',
+          filter: `id=eq.${lobby.id}`,
+        },
+        (payload: LobbyUpdatePayload) => {
+          if (payload.new.status === 'completed') {
+            navigate('/results');
+          }
         }
-      })
+      )
       .subscribe();
 
     return () => {
-      supabase.removeSubscription(subscription);
+      supabase.removeChannel(channel);
     };
   }, [lobby, fetchQuestions, navigate]);
 
@@ -53,7 +81,9 @@ const Quiz: React.FC = () => {
   return (
     <div className="text-center mt-8">
       <h2 className="text-2xl mb-4">Quiz Time!</h2>
-      <p className="mb-4">Question {currentQuestionIndex + 1} of {questions.length}</p>
+      <p className="mb-4">
+        Question {currentQuestionIndex + 1} of {questions.length}
+      </p>
       <Question
         question={currentQuestion.question}
         answers={[currentQuestion.correct_answer, ...currentQuestion.wrong_answers].sort(() => Math.random() - 0.5)}
