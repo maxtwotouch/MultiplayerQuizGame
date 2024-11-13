@@ -1,14 +1,15 @@
 // src/supabaseClient.ts
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL!;
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY!;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  realtime: {
-    // Enable the necessary realtime features
-    params: {
-      eventsPerSecond: 10,
-    },
-  },
-});
+if (!supabaseUrl) {
+  throw new Error('supabaseUrl is required.');
+}
+
+if (!supabaseAnonKey) {
+  throw new Error('supabaseAnonKey is required.');
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);

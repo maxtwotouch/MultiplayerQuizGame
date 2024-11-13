@@ -6,6 +6,7 @@ import { useLobby } from '../contexts/LobbyContext';
 import Question from '../components/Quiz/Question';
 import { supabase } from '../supabaseClient';
 
+// Define the structure of the lobby status payload
 interface LobbyUpdatePayload {
   eventType: 'INSERT' | 'UPDATE' | 'DELETE';
   schema: string;
@@ -62,6 +63,7 @@ const Quiz: React.FC = () => {
       )
       .subscribe();
 
+    // Cleanup subscription on unmount
     return () => {
       supabase.removeChannel(channel);
     };
