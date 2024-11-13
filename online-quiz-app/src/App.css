@@ -1,0 +1,25 @@
+/* src/app.css */
+
+/* Tailwind Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Component Styles */
+
+/* Example: Custom Button Styles */
+.custom-button {
+  @apply bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300;
+}
+
+/* Example: Card Component */
+.card {
+  @apply p-8 bg-white dark:bg-gray-800 rounded shadow;
+}
+
+/* Example: Read The Docs Link */
+.read-the-docs {
+  @apply text-gray-500;
+}
+
+/* Additional custom styles can be added here */
