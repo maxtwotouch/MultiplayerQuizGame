@@ -20,8 +20,12 @@ const JoinLobby: React.FC = () => {
       await joinLobby(name.trim(), code.trim().toUpperCase());
       toast.success('Joined lobby successfully!');
       navigate('/lobby'); // Redirect to lobby page
-    } catch (error: any) {
-      console.error('Join Lobby Error:', error.message || error);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Join Lobby Error:', error.message);
+      } else {
+        console.error('Join Lobby Error:', error);
+      }
       toast.error('Failed to join lobby. Please check the code and try again.');
     }
   };

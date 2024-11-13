@@ -11,12 +11,13 @@ interface Lobby {
 }
 
 interface LobbyContextProps {
-  lobby: Lobby | null;
-  createLobby: (name: string) => Promise<void>;
-  joinLobby: (name: string, code: string) => Promise<void>;
-  startGame: () => Promise<void>;
-  leaveLobby: () => Promise<void>;
-}
+    lobby: Lobby | null;
+    createLobby: (name: string) => Promise<void>;
+    joinLobby: (name: string, code: string) => Promise<void>;
+    startGame: () => Promise<void>;
+    leaveLobby: () => Promise<void>;
+  }
+  
 
 const LobbyContext = createContext<LobbyContextProps | undefined>(undefined);
 
@@ -112,9 +113,10 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
-  const joinLobby = async (code: string) => {
+// src/contexts/LobbyContext.tsx
+const joinLobby = async (name: string, code: string) => {
     if (!user) throw new Error('User not authenticated');
-
+  
     try {
       // Find lobby by code
       const { data: lobbyData, error: lobbyError } = await supabase
@@ -122,27 +124,27 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         .select('*')
         .eq('code', code)
         .single();
-
+  
       if (lobbyError) {
         console.error('Error finding lobby:', lobbyError.message);
         throw lobbyError;
       }
-
+  
       if (lobbyData.status !== 'waiting') {
         throw new Error('Cannot join a lobby that is already in progress or completed');
       }
-
+  
       // Add player to lobby_players
       const { error: playerError } = await supabase
         .from('lobby_players')
-        .insert([{ lobby_id: lobbyData.id, player_id: user.id }])
+        .insert([{ lobby_id: lobbyData.id, player_id: user.id, name }]) // Assuming 'name' field exists
         .single();
-
+  
       if (playerError) {
         console.error('Error joining lobby:', playerError.message);
         throw playerError;
       }
-
+  
       setLobby({
         id: lobbyData.id,
         code: lobbyData.code,
@@ -154,7 +156,7 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       throw error;
     }
   };
-
+  
   const startGame = async () => {
     if (!lobby || !lobby.host) throw new Error('Only the host can start the game');
 
