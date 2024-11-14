@@ -21,32 +21,27 @@ const PlayerList: React.FC = () => {
     }
 
     const fetchPlayers = async () => {
-      setLoading(true);
-      try {
         const { data, error } = await supabase
           .from('lobby_players')
-          .select('player_id, profiles(name)')
+          .select(`
+            player_id,
+            name,
+            scores(score)
+          `)
           .eq('lobby_id', lobby.id);
-
+      
         if (error) {
           console.error('Error fetching players:', error.message);
-          setPlayers([]);
-          return;
+        } else {
+          const formattedPlayers: Player[] = data.map((lp: any) => ({
+            id: lp.player_id,
+            name: lp.name, // Name is now fetched directly from lobby_players
+            score: lp.scores ? lp.scores.score : 0, // Fetch scores, if available
+          }));
+          setPlayers(formattedPlayers);
         }
-
-        const fetchedPlayers: Player[] = data.map((lp: any) => ({
-          id: lp.player_id,
-          name: lp.profiles.name,
-        }));
-
-        setPlayers(fetchedPlayers);
-      } catch (error: any) {
-        console.error('Error fetching players:', error.message || error);
-        setPlayers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+      };
+      
 
     fetchPlayers();
 

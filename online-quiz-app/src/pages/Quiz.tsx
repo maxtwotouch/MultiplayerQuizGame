@@ -1,79 +1,13 @@
 // src/pages/Quiz.tsx
-import { useEffect } from 'react';
+import React from 'react';
 import { useQuiz } from '../contexts/QuizContext';
-import { useNavigate } from 'react-router-dom';
 import { useLobby } from '../contexts/LobbyContext';
 import Question from '../components/Quiz/Question';
-import { supabase } from '../supabaseClient';
-
-// Define the structure of the lobby status payload
-interface LobbyUpdatePayload {
-  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
-  schema: string;
-  table: string;
-  commit_timestamp: string;
-  new: {
-    id: string;
-    code: string;
-    host_id: string;
-    status: 'waiting' | 'in progress' | 'completed';
-    // Add other relevant fields
-  };
-  old: {
-    id: string;
-    code: string;
-    host_id: string;
-    status: 'waiting' | 'in progress' | 'completed';
-    // Add other relevant fields
-  };
-}
+import PlayerStatus from '../components/Quiz/PlayerStatus';
 
 const Quiz: React.FC = () => {
-  const { questions, currentQuestionIndex, submitAnswer, isQuizOver, score, fetchQuestions } = useQuiz();
+  const { questions, currentQuestionIndex, submitAnswer, score } = useQuiz();
   const { lobby } = useLobby();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!lobby) return;
-
-    const initializeQuiz = async () => {
-      await fetchQuestions();
-    };
-
-    if (lobby.status === 'in progress') {
-      initializeQuiz();
-    }
-
-    // Subscribe to lobby status changes using Supabase v2's channel
-    const channel = supabase
-      .channel(`lobby-${lobby.id}`)
-      .on(
-        'postgres_changes' as any,
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'lobbies',
-          filter: `id=eq.${lobby.id}`,
-        },
-        (payload: LobbyUpdatePayload) => {
-          if (payload.new.status === 'completed') {
-            navigate('/results');
-          }
-        }
-      )
-      .subscribe();
-
-    // Cleanup subscription on unmount
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [lobby, fetchQuestions, navigate]);
-
-  useEffect(() => {
-    if (isQuizOver) {
-      navigate('/results');
-    }
-  }, [isQuizOver, navigate]);
 
   if (!lobby) return <p>Please join a lobby to play the quiz.</p>;
   if (!questions.length) return <p>Loading questions...</p>;
@@ -88,10 +22,12 @@ const Quiz: React.FC = () => {
       </p>
       <Question
         question={currentQuestion.question}
-        answers={[currentQuestion.correct_answer, ...currentQuestion.wrong_answers].sort(() => Math.random() - 0.5)}
+        answers={currentQuestion.all_answers}
+        correctAnswer={currentQuestion.correct_answer}
         onAnswer={submitAnswer}
       />
       <p className="mt-4">Current Score: {score}</p>
+      <PlayerStatus /> {/* Display Player Statuses */}
     </div>
   );
 };
