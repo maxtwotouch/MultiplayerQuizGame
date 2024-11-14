@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useLobby } from '../../contexts/LobbyContext';
-import { useAuth } from '../../contexts/AuthContext';
+// import { useAuth } from '../../contexts/AuthContext';
 
 interface Player {
   id: string;
@@ -14,7 +14,7 @@ interface Player {
 
 const PlayerStatus: React.FC = () => {
   const { lobby } = useLobby();
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
 
   useEffect(() => {

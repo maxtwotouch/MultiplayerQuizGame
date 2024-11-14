@@ -1,4 +1,5 @@
 // src/components/Lobby/PlayerList.tsx
+
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useLobby } from '../../contexts/LobbyContext';
@@ -21,31 +22,31 @@ const PlayerList: React.FC = () => {
     }
 
     const fetchPlayers = async () => {
-        const { data, error } = await supabase
-          .from('lobby_players')
-          .select(`
-            player_id,
-            name,
-            scores(score)
-          `)
-          .eq('lobby_id', lobby.id);
-      
-        if (error) {
-          console.error('Error fetching players:', error.message);
-        } else {
-          const formattedPlayers: Player[] = data.map((lp: any) => ({
-            id: lp.player_id,
-            name: lp.name, // Name is now fetched directly from lobby_players
-            score: lp.scores ? lp.scores.score : 0, // Fetch scores, if available
-          }));
-          setPlayers(formattedPlayers);
-        }
-      };
-      
+      setLoading(true); // Start loading
+      const { data, error } = await supabase
+        .from('lobby_players')
+        .select(`
+          player_id,
+          profiles(name),
+          scores(score)
+        `)
+        .eq('lobby_id', lobby.id);
+
+      if (error) {
+        console.error('Error fetching players:', error.message);
+      } else {
+        const formattedPlayers: Player[] = data.map((lp: any) => ({
+          id: lp.player_id,
+          name: lp.profiles.name,
+          score: lp.scores ? lp.scores.score : 0,
+        }));
+        setPlayers(formattedPlayers);
+      }
+      setLoading(false); // End loading
+    };
 
     fetchPlayers();
 
-    // Real-time subscription using supabase.channel() (v2)
     const channel = supabase
       .channel(`lobby-${lobby.id}`)
       .on(
@@ -58,7 +59,7 @@ const PlayerList: React.FC = () => {
         },
         payload => {
           console.log('Change received!', payload);
-          fetchPlayers(); // Refresh player list on any change
+          fetchPlayers();
         }
       )
       .subscribe();

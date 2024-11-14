@@ -1,4 +1,5 @@
 // src/pages/Quiz.tsx
+
 import React from 'react';
 import { useQuiz } from '../contexts/QuizContext';
 import { useLobby } from '../contexts/LobbyContext';
@@ -22,7 +23,7 @@ const Quiz: React.FC = () => {
       </p>
       <Question
         question={currentQuestion.question}
-        answers={currentQuestion.all_answers}
+        answers={currentQuestion.all_answers} // Now string[] is guaranteed
         correctAnswer={currentQuestion.correct_answer}
         onAnswer={submitAnswer}
       />

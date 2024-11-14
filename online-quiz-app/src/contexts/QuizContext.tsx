@@ -1,17 +1,28 @@
 // src/contexts/QuizContext.tsx
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+} from 'react';
 import { supabase } from '../supabaseClient';
 import { useLobby } from './LobbyContext';
 import { useAuth } from './AuthContext';
 import questionsData from '../data/dummyQuestions.json';
 import { useNavigate } from 'react-router-dom';
 
-interface Question {
+interface RawQuestion {
   id: string;
   question: string;
   correct_answer: string;
   wrong_answers: string[];
-  all_answers?: string[]; // To store shuffled answers
+}
+
+interface Question extends RawQuestion {
+  all_answers: string[]; // Made required
 }
 
 interface QuizContextProps {
@@ -24,12 +35,28 @@ interface QuizContextProps {
   fetchQuestions: () => Promise<void>;
 }
 
+// Define interfaces for the data structures being upserted
+interface LobbyPlayer {
+  lobby_id: string;
+  player_id: string;
+}
+
+interface PlayerAnswer {
+  lobby_id: string;
+  player_id: string;
+  question_id: string;
+  answer: string;
+  is_correct: boolean;
+}
+
 const QuizContext = createContext<QuizContextProps | undefined>(undefined);
 
-export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const QuizProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const { lobby } = useLobby();
   const { user } = useAuth();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
@@ -45,7 +72,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [lobby]);
 
   // Shuffle answers helper using Fisher-Yates shuffle for better randomness
-  const shuffleAnswers = useCallback((question: Question) => {
+  const shuffleAnswers = useCallback((question: RawQuestion): string[] => {
     const shuffled = [...question.wrong_answers, question.correct_answer];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -60,7 +87,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const fetchQuestionsInternal = async () => {
       try {
-        const shuffledQuestions = questionsData.map((q) => ({
+        const shuffledQuestions: Question[] = questionsData.map((q: RawQuestion) => ({
           ...q,
           all_answers: shuffleAnswers(q),
         }));
@@ -91,44 +118,55 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (user && lobbyId) {
         try {
           // Ensure player exists in lobby_players
+          const lobbyPlayer: LobbyPlayer = {
+            lobby_id: lobbyId,
+            player_id: user.id,
+          };
+
           const { error: upsertError } = await supabase
             .from('lobby_players')
-            .upsert(
-              { lobby_id: lobbyId, player_id: user.id },
-              { onConflict: ['lobby_id', 'player_id'] }
-            );
+            .upsert(lobbyPlayer, {
+              onConflict: 'lobby_id,player_id', // Changed to comma-separated string
+            });
 
           if (upsertError) {
-            console.error('Error upserting lobby player:', upsertError);
+            console.error('Error upserting lobby player:', upsertError.message);
           }
 
           if (isCorrect) {
             // Call the RPC function to increment the score
-            const { error: rpcError } = await supabase.rpc('increment_score', {
-              p_lobby_id: lobbyId,
-              p_player_id: user.id,
-            });
+            const { error: rpcError } = await supabase.rpc(
+              'increment_score',
+              {
+                p_lobby_id: lobbyId,
+                p_player_id: user.id,
+              }
+            );
 
             if (rpcError) {
-              console.error('Error incrementing score via RPC:', rpcError);
+              console.error(
+                'Error incrementing score via RPC:',
+                rpcError.message
+              );
             } else {
               console.log('Score incremented successfully via RPC.');
             }
           }
 
           // Insert the player's answer into the 'answers' table using upsert
+          const playerAnswer: PlayerAnswer = {
+            lobby_id: lobbyId,
+            player_id: user.id,
+            question_id: currentQuestion.id,
+            answer: answer,
+            is_correct: isCorrect,
+          };
+
           const { data: answerData, error: answerError } = await supabase
             .from('answers')
-            .upsert(
-              {
-                lobby_id: lobbyId,
-                player_id: user.id,
-                question_id: currentQuestion.id,
-                answer: answer,
-                is_correct: isCorrect,
-              },
-              { onConflict: ['lobby_id', 'player_id', 'question_id'] }
-            )
+            .upsert(playerAnswer, {
+              onConflict: 'lobby_id,player_id,question_id', // Changed to comma-separated string
+            })
             .single();
 
           if (answerError) {
@@ -158,7 +196,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               .single();
 
             if (error) {
-              console.error('Error completing lobby:', error);
+              console.error('Error completing lobby:', error.message);
             } else {
               console.log('Lobby status updated to completed:', data);
             }
@@ -171,13 +209,20 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         navigate('/results');
       }
     },
-    [questions, currentQuestionIndex, isQuizOver, user, lobbyId, navigate]
+    [
+      questions,
+      currentQuestionIndex,
+      isQuizOver,
+      user,
+      lobbyId,
+      navigate,
+    ]
   );
 
   const fetchQuestions = useCallback(async () => {
     if (!lobbyId) return;
 
-    const shuffledQuestions = questionsData.map((q) => ({
+    const shuffledQuestions: Question[] = questionsData.map((q: RawQuestion) => ({
       ...q,
       all_answers: shuffleAnswers(q),
     }));

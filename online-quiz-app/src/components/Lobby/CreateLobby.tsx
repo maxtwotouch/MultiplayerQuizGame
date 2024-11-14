@@ -16,7 +16,7 @@ const CreateLobby: React.FC = () => {
       return;
     }
     try {
-      await createLobby(name.trim());
+      await createLobby();
       toast.success('Lobby created successfully!');
       navigate('/lobby'); // Redirect to lobby page
     } catch (error: any) {

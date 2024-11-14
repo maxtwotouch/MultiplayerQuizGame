@@ -1,4 +1,5 @@
 // src/components/Lobby/JoinLobby.tsx
+
 import React, { useState } from 'react';
 import { useLobby } from '../../contexts/LobbyContext';
 import { toast, ToastContainer } from 'react-toastify';
@@ -17,7 +18,7 @@ const JoinLobby: React.FC = () => {
       return;
     }
     try {
-      await joinLobby(name.trim(), code.trim().toUpperCase());
+      await joinLobby(name.trim(), code.trim().toUpperCase()); // Pass both name and code
       toast.success('Joined lobby successfully!');
       navigate('/lobby'); // Redirect to lobby page
     } catch (error) {
