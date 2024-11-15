@@ -22,7 +22,7 @@ module.exports = {
     require('daisyui'),
   ],
   daisyui: {
-    themes: ["synthwave", "light", "dark"],
+    themes: ["synthwave", "dark", "dracula", "emerald", "halloween", "lofi", "synthwave"],
     defaultTheme: "synthwave",
   },
 };

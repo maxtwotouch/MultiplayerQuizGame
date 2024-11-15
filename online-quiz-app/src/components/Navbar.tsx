@@ -4,7 +4,7 @@ import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLobby } from '../contexts/LobbyContext';
 import { Link, useNavigate } from 'react-router-dom';
-import ThemeToggle from './ThemeToggle'; // Ensure this component exists and is responsive
+// import ThemeToggle from './ThemeToggle';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -65,10 +65,10 @@ const Navbar: React.FC = () => {
                 </li>
               </>
             )}
-            {/* Theme Toggle in Mobile Menu */}
+            {/* Theme Toggle in Mobile Menu
             <li>
               <ThemeToggle />
-            </li>
+            </li> */}
           </ul>
         </div>
         {/* Brand */}
@@ -102,12 +102,12 @@ const Navbar: React.FC = () => {
               </li>
             </>
           )}
-          {/* Theme Toggle in Large Screens */}
+          {/* Theme Toggle in Large Screens
           {user && (
             <li>
               <ThemeToggle />
             </li>
-          )}
+          )} */}
         </ul>
       </div>
 
