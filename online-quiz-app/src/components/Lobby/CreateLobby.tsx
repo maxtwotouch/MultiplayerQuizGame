@@ -1,4 +1,3 @@
-// src/components/Lobby/CreateLobby.tsx
 import React, { useState } from 'react';
 import { useLobby } from '../../contexts/LobbyContext';
 import { toast, ToastContainer } from 'react-toastify';
@@ -26,22 +25,30 @@ const CreateLobby: React.FC = () => {
   };
 
   return (
-    <div>
-      <h3>Create a Lobby</h3>
-      <input
-        type="text"
-        placeholder="Enter your name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        style={{ margin: '0.5rem', padding: '0.5rem' }}
-      />
+    <div className="card bg-base-100 shadow-lg p-6">
+      <h3 className="text-2xl font-semibold mb-4">Create a Lobby</h3>
+      <div className="form-control mb-4">
+        <input
+          type="text"
+          placeholder="Enter your name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="input input-bordered w-full"
+          disabled={!!lobby}
+        />
+      </div>
       <button
         onClick={handleCreateLobby}
-        style={{ padding: '0.5rem 1rem' }}
+        className={`btn btn-primary w-full ${!!lobby ? 'btn-disabled' : ''}`}
         disabled={!!lobby} // Disable if already in a lobby
       >
         Create Lobby
       </button>
+      {lobby && (
+        <p className="text-center text-gray-500 mt-4">
+          You are already in a lobby. Leave the current lobby to create a new one.
+        </p>
+      )}
       <ToastContainer />
     </div>
   );

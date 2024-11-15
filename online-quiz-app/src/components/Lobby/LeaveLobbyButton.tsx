@@ -1,4 +1,3 @@
-// src/components/Lobby/LeaveLobbyButton.tsx
 import React from 'react';
 import { useLobby } from '../../contexts/LobbyContext';
 import { useNavigate } from 'react-router-dom';
@@ -21,17 +20,10 @@ const LeaveLobbyButton: React.FC = () => {
   };
 
   return (
-    <div style={{ marginTop: '1rem' }}>
+    <div className="mt-4">
       <button
         onClick={handleLeaveLobby}
-        style={{
-          padding: '0.5rem 1rem',
-          backgroundColor: '#f44336',
-          color: '#fff',
-          border: 'none',
-          cursor: 'pointer',
-          borderRadius: '4px',
-        }}
+        className="btn btn-error w-full"
       >
         Leave Lobby
       </button>

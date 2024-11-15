@@ -1,4 +1,3 @@
-// src/pages/Register.tsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -27,26 +26,29 @@ const Register: React.FC = () => {
     }
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (user) return <p>You are already registered as {user.name}!</p>;
+  if (loading) return <p className="text-center mt-8">Loading...</p>;
+  if (user) return <p className="text-center mt-8">You are already registered as {user.name}!</p>;
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-      <h2>Register</h2>
-      <form onSubmit={handleRegister}>
-        <div style={{ margin: '0.5rem' }}>
-          <label>
-            Name:
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              style={{ margin: '0.5rem', padding: '0.5rem' }}
-            />
+    <div className="flex flex-col items-center mt-8 px-4">
+      <h2 className="text-3xl font-semibold mb-6">Register</h2>
+      <form onSubmit={handleRegister} className="w-full max-w-sm">
+        <div className="form-control mb-4">
+          <label className="label">
+            <span className="label-text">Name:</span>
           </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            className="input input-bordered w-full"
+            placeholder="Enter your name"
+          />
         </div>
-        <button type="submit" style={{ padding: '0.5rem 1rem' }}>Register</button>
+        <button type="submit" className="btn btn-primary w-full">
+          Register
+        </button>
       </form>
     </div>
   );

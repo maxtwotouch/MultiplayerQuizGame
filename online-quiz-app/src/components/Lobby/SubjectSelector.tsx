@@ -1,9 +1,8 @@
-// src/components/Lobby/SubjectSelector.tsx
-
 import React, { useState, useEffect } from 'react';
 import { subjects } from '../../data/subjects';
 import { useLobby } from '../../contexts/LobbyContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { toast, ToastContainer } from 'react-toastify';
 
 const SubjectSelector: React.FC = () => {
   const { lobby, updateSubject } = useLobby(); // Access updateSubject
@@ -24,14 +23,16 @@ const SubjectSelector: React.FC = () => {
       try {
         // Update the lobby's subject using the exposed function
         await updateSubject(newSubject);
+        toast.success(`Subject updated to ${subjects.find(s => s.id === newSubject)?.name || 'Selected Subject'}`);
       } catch (error) {
         console.error('Unexpected error updating subject:', error);
+        toast.error('Failed to update subject. Please try again.');
       }
     }
   };
 
   return (
-    <div className="mt-4">
+    <div className="mt-6">
       <label htmlFor="subject" className="block mb-2 font-medium">
         Select Subject:
       </label>
@@ -39,7 +40,7 @@ const SubjectSelector: React.FC = () => {
         id="subject"
         value={selectedSubject}
         onChange={handleSubjectChange}
-        className="border border-gray-300 rounded px-4 py-2"
+        className="select select-bordered w-full max-w-xs"
         disabled={!lobby?.host || lobby.status !== 'waiting'}
       >
         <option value="">-- Select a Subject --</option>
@@ -49,6 +50,7 @@ const SubjectSelector: React.FC = () => {
           </option>
         ))}
       </select>
+      <ToastContainer />
     </div>
   );
 };

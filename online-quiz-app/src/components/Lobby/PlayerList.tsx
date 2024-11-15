@@ -1,5 +1,3 @@
-// src/components/Lobby/PlayerList.tsx
-
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useLobby } from '../../contexts/LobbyContext';
@@ -7,6 +5,7 @@ import { useLobby } from '../../contexts/LobbyContext';
 interface Player {
   id: string;
   name: string;
+  score: number;
 }
 
 const PlayerList: React.FC = () => {
@@ -71,18 +70,20 @@ const PlayerList: React.FC = () => {
   }, [lobby]);
 
   if (loading) {
-    return <p>Loading players...</p>;
+    return <p className="text-center mt-4">Loading players...</p>;
   }
 
   return (
-    <div>
-      <h3>Players in Lobby:</h3>
+    <div className="mt-4">
+      <h3 className="text-xl font-semibold mb-2">Players in Lobby:</h3>
       {players.length === 0 ? (
-        <p>No players yet.</p>
+        <p className="text-gray-500">No players yet.</p>
       ) : (
-        <ul>
+        <ul className="list-disc list-inside">
           {players.map(player => (
-            <li key={player.id}>{player.name}</li>
+            <li key={player.id} className="text-lg">
+              {player.name} <span className="text-custom-blue">({player.score} pts)</span>
+            </li>
           ))}
         </ul>
       )}

@@ -1,10 +1,8 @@
-// src/pages/Results.tsx
-
 import React, { useEffect, useState } from 'react';
 import { useQuiz } from '../contexts/QuizContext';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
-import { useLobby } from '../contexts/LobbyContext'; // Import useLobby
+import { useLobby } from '../contexts/LobbyContext';
 
 interface Result {
   player_id: string;
@@ -13,8 +11,8 @@ interface Result {
 }
 
 const Results: React.FC = () => {
-  const { lobbyId, questions } = useQuiz(); // Access questions from QuizContext
-  const { lobby } = useLobby(); // Access lobby status
+  const { lobbyId, questions } = useQuiz();
+  const { lobby } = useLobby();
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
@@ -22,7 +20,6 @@ const Results: React.FC = () => {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        // Ensure the lobby exists and is completed
         if (!lobby || lobby.status !== 'completed') {
           console.log('Quiz is not completed or lobby is missing. Redirecting to home.');
           navigate('/');
@@ -38,7 +35,7 @@ const Results: React.FC = () => {
             scores (score)
           `)
           .eq('lobby_id', lobbyId)
-          .order('score', { ascending: false, foreignTable: 'scores' }); // Sort by score descendingly
+          .order('score', { ascending: false, foreignTable: 'scores' });
 
         if (error) {
           console.error('Error fetching results:', error);
@@ -69,20 +66,23 @@ const Results: React.FC = () => {
   };
 
   if (loading) {
-    return <p>Loading results...</p>;
+    return <p className="text-center mt-8">Loading results...</p>;
   }
 
-  // Calculate total number of questions
   const totalQuestions = questions.length;
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '2rem', padding: '1rem', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
-      <h2>Quiz Results</h2>
+    <div className="text-center mt-8 px-4 max-w-2xl mx-auto">
+      <h2 className="text-3xl font-semibold mb-6">Quiz Results</h2>
       {results.length > 0 ? (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
+        <ul className="list-none p-0">
           {results.map((result, index) => (
-            <li key={result.player_id} style={{ margin: '0.5rem 0' }}>
-              {index + 1}. {result.name}: {result.score} out of {totalQuestions} points
+            <li key={result.player_id} className="mb-2">
+              <div className="card bg-base-200 shadow-md p-4 rounded-lg">
+                <p className="text-lg">
+                  <span className="font-bold">{index + 1}.</span> {result.name}: <span className="text-custom-blue font-bold">{result.score}</span> out of {totalQuestions} points
+                </p>
+              </div>
             </li>
           ))}
         </ul>
@@ -91,22 +91,7 @@ const Results: React.FC = () => {
       )}
       <button
         onClick={handleReturnHome}
-        style={{
-          padding: '0.5rem 1rem',
-          marginTop: '1rem',
-          backgroundColor: '#007BFF',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          transition: 'background-color 0.3s',
-        }}
-        onMouseOver={(e) => {
-          (e.target as HTMLButtonElement).style.backgroundColor = '#0056b3';
-        }}
-        onMouseOut={(e) => {
-          (e.target as HTMLButtonElement).style.backgroundColor = '#007BFF';
-        }}
+        className="btn btn-primary mt-6"
       >
         Return Home
       </button>

@@ -1,8 +1,8 @@
-// src/components/Navbar.tsx
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLobby } from '../contexts/LobbyContext';
 import { Link, useNavigate } from 'react-router-dom';
+import ThemeToggle from './ThemeToggle'; // Assuming ThemeToggle component exists
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -19,28 +19,33 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <nav style={{ padding: '1rem', backgroundColor: '#333', color: '#fff', display: 'flex', justifyContent: 'space-between' }}>
-      <div>
-        <Link to="/" style={{ color: '#fff', textDecoration: 'none' }}>
-          <h1>Quiz App</h1>
+    <div className="navbar bg-primary text-primary-content px-4">
+      <div className="flex-1">
+        <Link to="/" className="btn btn-ghost normal-case text-xl">
+          Quiz App
         </Link>
       </div>
-      <div>
+      <div className="flex items-center space-x-4">
         {user && (
           <>
             {lobby && (
-              <Link to="/lobby" style={{ marginRight: '1rem', color: '#fff', textDecoration: 'none' }}>
+              <Link to="/lobby" className="btn btn-ghost">
                 Lobby
               </Link>
             )}
-            <span style={{ marginRight: '1rem' }}>Welcome, {user.name}</span>
-            <button onClick={handleLogout} style={{ padding: '0.5rem 1rem', backgroundColor: '#f44336', color: '#fff', border: 'none', cursor: 'pointer' }}>
+            <span className="text-lg">Welcome, {user.name}</span>
+            <button
+              onClick={handleLogout}
+              className="btn btn-error"
+            >
               Logout
             </button>
           </>
         )}
+        {/* Optional: Include Theme Toggle */}
+        <ThemeToggle />
       </div>
-    </nav>
+    </div>
   );
 };
 

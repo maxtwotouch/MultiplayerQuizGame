@@ -1,8 +1,6 @@
-// src/components/Quiz/PlayerStatus.tsx
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useLobby } from '../../contexts/LobbyContext';
-// import { useAuth } from '../../contexts/AuthContext';
 
 interface Player {
   id: string;
@@ -14,13 +12,18 @@ interface Player {
 
 const PlayerStatus: React.FC = () => {
   const { lobby } = useLobby();
-  // const { user } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    if (!lobby) return;
+    if (!lobby) {
+      setPlayers([]);
+      setLoading(false);
+      return;
+    }
 
     const fetchPlayers = async () => {
+      setLoading(true);
       const { data, error } = await supabase
         .from('lobby_players')
         .select(`
@@ -29,7 +32,7 @@ const PlayerStatus: React.FC = () => {
           scores(score)
         `)
         .eq('lobby_id', lobby.id);
-    
+
       if (error) {
         console.error('Error fetching players:', error.message);
       } else {
@@ -38,10 +41,10 @@ const PlayerStatus: React.FC = () => {
           name: lp.profiles.name,
           score: lp.scores ? lp.scores.score : 0,
         }));
-        setPlayers(formattedPlayers); // Ensure players are updated in state
+        setPlayers(formattedPlayers);
       }
+      setLoading(false);
     };
-    
 
     fetchPlayers();
 
@@ -102,46 +105,32 @@ const PlayerStatus: React.FC = () => {
     };
   }, [lobby]);
 
+  if (loading) {
+    return <p className="text-center mt-4">Loading players...</p>;
+  }
+
   return (
-    <div style={styles.container}>
-      <h3>Players</h3>
-      <ul style={styles.list}>
-        {players.map((player) => (
-          <li key={player.id} style={styles.listItem}>
-            <span>{player.name}</span>
-            <span>Score: {player.score}</span>
-            {player.currentAnswer !== undefined && (
-              <span style={{ color: player.isCorrect ? 'green' : 'red' }}>
-                {player.isCorrect ? '✅ Correct' : '❌ Wrong'}
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
+    <div className="mt-6">
+      <h3 className="text-xl font-semibold mb-4">Players</h3>
+      {players.length === 0 ? (
+        <p className="text-gray-500">No players yet.</p>
+      ) : (
+        <ul className="space-y-2">
+          {players.map((player) => (
+            <li key={player.id} className="flex justify-between items-center p-4 bg-base-200 rounded-lg shadow">
+              <span className="font-medium">{player.name}</span>
+              <span className="text-custom-blue font-semibold">Score: {player.score}</span>
+              {player.currentAnswer !== undefined && (
+                <span className={`font-semibold ${player.isCorrect ? 'text-green-500' : 'text-red-500'}`}>
+                  {player.isCorrect ? '✅ Correct' : '❌ Wrong'}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
-};
-
-const styles = {
-  container: {
-    marginTop: '2rem',
-    padding: '1rem',
-    border: '1px solid #ccc',
-    borderRadius: '8px',
-    width: '80%',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-  },
-  list: {
-    listStyleType: 'none' as const,
-    padding: 0,
-  },
-  listItem: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    padding: '0.5rem 0',
-    borderBottom: '1px solid #eee',
-  },
 };
 
 export default PlayerStatus;

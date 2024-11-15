@@ -1,5 +1,3 @@
-// src/pages/Lobby.tsx
-
 import React from 'react';
 import { useLobby } from '../contexts/LobbyContext';
 import CreateLobby from '../components/Lobby/CreateLobby';
@@ -7,28 +5,28 @@ import JoinLobby from '../components/Lobby/JoinLobby';
 import PlayerList from '../components/Lobby/PlayerList';
 import StartGameButton from '../components/Lobby/StartGameButton';
 import LeaveLobbyButton from '../components/Lobby/LeaveLobbyButton';
-import SubjectSelector from '../components/Lobby/SubjectSelector'; // Import the SubjectSelector
+import SubjectSelector from '../components/Lobby/SubjectSelector';
 
 const Lobby: React.FC = () => {
   const { lobby } = useLobby();
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.heading}>Lobby</h2>
+    <div className="text-center mt-8 px-4 max-w-2xl mx-auto">
+      <h2 className="text-3xl font-semibold mb-6">Lobby</h2>
       {!lobby ? (
-        <div style={styles.lobbyOptions}>
+        <div className="flex flex-col items-center space-y-4">
           <CreateLobby />
-          <hr style={styles.divider} />
+          <div className="divider"></div> {/* DaisyUI Divider */}
           <JoinLobby />
         </div>
       ) : (
-        <div style={styles.lobbyDetails}>
-          <p style={styles.lobbyCode}>
-            Your Lobby Code: <strong>{lobby.code}</strong>
+        <div className="flex flex-col items-center space-y-4">
+          <p className="text-xl">
+            Your Lobby Code: <strong className="text-custom-blue">{lobby.code}</strong>
           </p>
           <PlayerList />
-          {lobby.host && <SubjectSelector />} {/* Render SubjectSelector if host */}
-          <div style={styles.buttonsContainer}>
+          {lobby.host && <SubjectSelector />}
+          <div className="flex space-x-4 mt-4">
             {lobby.host && <StartGameButton />}
             <LeaveLobbyButton />
           </div>
@@ -36,45 +34,6 @@ const Lobby: React.FC = () => {
       )}
     </div>
   );
-};
-
-// Inline styles for better readability and maintenance
-const styles = {
-  container: {
-    textAlign: 'center' as const,
-    marginTop: '2rem',
-    padding: '1rem',
-    maxWidth: '600px',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-  },
-  heading: {
-    fontSize: '2rem',
-    marginBottom: '1.5rem',
-  },
-  lobbyOptions: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    alignItems: 'center' as const,
-  },
-  divider: {
-    width: '80%',
-    margin: '2rem 0',
-  },
-  lobbyDetails: {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    alignItems: 'center' as const,
-  },
-  lobbyCode: {
-    fontSize: '1.2rem',
-    marginBottom: '1rem',
-  },
-  buttonsContainer: {
-    display: 'flex',
-    gap: '1rem',
-    marginTop: '1.5rem',
-  },
 };
 
 export default Lobby;

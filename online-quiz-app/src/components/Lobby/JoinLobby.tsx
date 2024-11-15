@@ -1,5 +1,3 @@
-// src/components/Lobby/JoinLobby.tsx
-
 import React, { useState } from 'react';
 import { useLobby } from '../../contexts/LobbyContext';
 import { toast, ToastContainer } from 'react-toastify';
@@ -32,33 +30,37 @@ const JoinLobby: React.FC = () => {
   };
 
   return (
-    <div>
-      <h3>Join a Lobby</h3>
-      <input
-        type="text"
-        placeholder="Enter your name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        style={{ margin: '0.5rem', padding: '0.5rem', width: '80%' }}
-        disabled={!!lobby} // Disable input if already in a lobby
-      />
-      <input
-        type="text"
-        placeholder="Enter Lobby Code"
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-        style={{ margin: '0.5rem', padding: '0.5rem', width: '80%' }}
-        disabled={!!lobby} // Disable input if already in a lobby
-      />
+    <div className="card bg-base-100 shadow-lg p-6">
+      <h3 className="text-2xl font-semibold mb-4">Join a Lobby</h3>
+      <div className="form-control mb-4">
+        <input
+          type="text"
+          placeholder="Enter your name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="input input-bordered w-full"
+          disabled={!!lobby} // Disable input if already in a lobby
+        />
+      </div>
+      <div className="form-control mb-4">
+        <input
+          type="text"
+          placeholder="Enter Lobby Code"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          className="input input-bordered w-full"
+          disabled={!!lobby} // Disable input if already in a lobby
+        />
+      </div>
       <button
         onClick={handleJoinLobby}
-        style={{ padding: '0.5rem 1rem', marginTop: '0.5rem' }}
+        className={`btn btn-secondary w-full ${!!lobby ? 'btn-disabled' : ''}`}
         disabled={!!lobby} // Disable if already in a lobby
       >
         Join Lobby
       </button>
       {lobby && (
-        <p style={{ color: 'gray', marginTop: '1rem' }}>
+        <p className="text-center text-gray-500 mt-4">
           You are already in a lobby. Leave the current lobby to join another.
         </p>
       )}

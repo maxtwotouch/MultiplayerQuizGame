@@ -14,8 +14,8 @@ const Quiz: React.FC = () => {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
-  if (!lobby) return <p>Please join a lobby to play the quiz.</p>;
-  if (!questions.length) return <p>Loading questions...</p>;
+  if (!lobby) return <p className="text-center mt-8">Please join a lobby to play the quiz.</p>;
+  if (!questions.length) return <p className="text-center mt-8">Loading questions...</p>;
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -37,13 +37,12 @@ const Quiz: React.FC = () => {
     setSelectedAnswer('');
   };
 
-  // useEffect to handle the 1-second display of feedback
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isCorrect !== null) {
       timer = setTimeout(() => {
         handleNextQuestion();
-      }, 1000); // 1000 milliseconds = 1 second
+      }, 1000);
     }
     return () => {
       if (timer) clearTimeout(timer);
@@ -53,56 +52,55 @@ const Quiz: React.FC = () => {
   if (isQuizOver) {
     return (
       <div className="text-center mt-8">
-        <h2 className="text-2xl mb-4">You have completed the quiz!</h2>
-        <p>Waiting for other players to finish...</p>
+        <h2 className="text-3xl mb-4 text-custom-blue">You have completed the quiz!</h2>
+        <p className="text-lg">Waiting for other players to finish...</p>
         {/* Optionally, add a spinner or progress indicator */}
       </div>
     );
   }
 
   return (
-    <div className="text-center mt-8">
-      <h2 className="text-2xl mb-4">Quiz Time!</h2>
+    <div className="max-w-2xl mx-auto bg-base-100 dark:bg-base-200 p-8 rounded-lg shadow-lg mt-8">
+      <h2 className="text-3xl mb-4 text-custom-blue">Quiz Time!</h2>
       {subject && (
-        <p className="mb-2 font-semibold">
+        <p className="mb-2 font-semibold text-white-700 dark:text-white-300">
           Subject: {subject}
         </p>
       )}
-      <p className="mb-4">
+      <p className="mb-4 text-xl">
         Question {currentQuestionIndex + 1} of {questions.length}
       </p>
       <Question
         question={currentQuestion.question}
-        answers={currentQuestion.all_answers} // Now string[] is guaranteed
+        answers={currentQuestion.all_answers}
         correctAnswer={currentQuestion.correct_answer}
         onAnswer={setSelectedAnswer}
         selectedAnswer={selectedAnswer}
-        isSubmitted={isCorrect !== null} // Pass isSubmitted
+        isSubmitted={isCorrect !== null}
         isCorrect={isCorrect}
       />
-      {error && <p className="text-red-500">{error}</p>}
-      {/* Show Submit Button only if not yet submitted */}
+      {error && <p className="text-red-500 mt-2">{error}</p>}
       {isCorrect === null && (
         <button
           onClick={handleSubmit}
           disabled={!selectedAnswer || submitting}
-          className={`mt-4 px-4 py-2 rounded ${
-            !selectedAnswer || submitting
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-500 hover:bg-blue-700 text-white'
+          className={`mt-4 btn btn-primary w-full ${
+            !selectedAnswer || submitting ? 'btn-disabled' : ''
           }`}
         >
           {submitting ? 'Submitting...' : 'Submit Answer'}
         </button>
       )}
-      {/* Display feedback message */}
       {isCorrect !== null && (
-        <p className={`mt-4 ${isCorrect ? 'text-green-500' : 'text-red-500'}`}>
-          {isCorrect ? 'Correct!' : 'Incorrect.'}
+        <p className={`mt-4 text-lg font-semibold ${
+          isCorrect ? 'text-green-500' : 'text-red-500'
+        }`}>
         </p>
       )}
-      <p className="mt-4">Current Score: {score}</p>
-      <PlayerStatus /> {/* Display Player Statuses */}
+      <p className="mt-4 text-lg">
+        Current Score: <span className="text-custom-blue font-bold">{score}</span>
+      </p>
+      <PlayerStatus />
     </div>
   );
 };
