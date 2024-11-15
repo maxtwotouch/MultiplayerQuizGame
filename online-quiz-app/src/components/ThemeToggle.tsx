@@ -12,12 +12,12 @@ const ThemeToggle: React.FC = () => {
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'synthwave' ? 'light' : 'synthwave'));
-    toast.info(`Switched to ${theme === 'synthwave' ? 'Light' : 'Synthwave'} Theme`);
+    toast.info(`Switched to ${theme === 'synthwave' ? 'Light' : 'synthwave'} Theme`);
   };
 
   return (
     <button onClick={toggleTheme} className="btn btn-outline">
-      Switch to {theme === 'synthwave' ? 'Light' : 'Synthwave'} Theme
+      Switch to {theme === 'synthwave' ? 'Light' : 'synthwave'} Theme
     </button>
   );
 };
