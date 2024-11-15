@@ -11,7 +11,7 @@ import React, {
 import { supabase } from '../supabaseClient';
 import { useLobby } from './LobbyContext';
 import { useAuth } from './AuthContext';
-import { subjects } from '../data/subjects';
+// import { subjects } from '../data/subjects';
 
 interface RawQuestion {
   id: string;
@@ -210,7 +210,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
               .from('lobby_players')
               .update({ finished: true, completed_at: new Date().toISOString() })
               .eq('lobby_id', lobbyId)
-              .eq('player_id', user.id)
+              .eq('player_id', user!.id)
               .single();
 
             if (finishError) {

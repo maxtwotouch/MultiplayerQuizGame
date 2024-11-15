@@ -8,6 +8,8 @@ interface QuestionProps {
   correctAnswer: string;
   onAnswer: (answer: string) => void;
   selectedAnswer: string;
+  isSubmitted: boolean; // Added property
+  isCorrect: boolean | null;
 }
 
 const Question: React.FC<QuestionProps> = ({
@@ -15,25 +17,35 @@ const Question: React.FC<QuestionProps> = ({
   answers,
   onAnswer,
   selectedAnswer,
+  isSubmitted,
+  isCorrect,
 }) => {
   return (
     <div>
-      <p className="text-xl mb-4">{question}</p>
-      {answers.map((answer, index) => (
-        <div key={index} className="mb-2">
-          <label className="inline-flex items-center">
-            <input
-              type="radio"
-              className="form-radio h-5 w-5 text-blue-600"
-              name="quiz-answer"
-              value={answer}
-              checked={selectedAnswer === answer}
-              onChange={() => onAnswer(answer)}
-            />
-            <span className="ml-2">{answer}</span>
-          </label>
-        </div>
-      ))}
+      <h3>{question}</h3>
+      <ul>
+        {answers.map((answer) => (
+          <li key={answer}>
+            <label>
+              <input
+                type="radio"
+                name="answer"
+                value={answer}
+                checked={selectedAnswer === answer}
+                onChange={() => onAnswer(answer)}
+                disabled={isSubmitted} // Disable after submission
+              />
+              {answer}
+            </label>
+          </li>
+        ))}
+      </ul>
+      {/* Display feedback only after submission */}
+      {isSubmitted && (
+        <p className={isCorrect ? 'text-green-500' : 'text-red-500'}>
+          {isCorrect ? 'Correct!' : 'Incorrect.'}
+        </p>
+      )}
     </div>
   );
 };

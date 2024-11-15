@@ -77,7 +77,7 @@ const Quiz: React.FC = () => {
         correctAnswer={currentQuestion.correct_answer}
         onAnswer={setSelectedAnswer}
         selectedAnswer={selectedAnswer}
-        isSubmitted={isCorrect !== null}
+        isSubmitted={isCorrect !== null} // Pass isSubmitted
         isCorrect={isCorrect}
       />
       {error && <p className="text-red-500">{error}</p>}
