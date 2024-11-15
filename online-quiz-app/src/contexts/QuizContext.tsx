@@ -11,8 +11,7 @@ import React, {
 import { supabase } from '../supabaseClient';
 import { useLobby } from './LobbyContext';
 import { useAuth } from './AuthContext';
-import questionsData from '../data/dummyQuestions.json';
-import { useNavigate } from 'react-router-dom';
+import { subjects } from '../data/subjects';
 
 interface RawQuestion {
   id: string;
@@ -22,7 +21,7 @@ interface RawQuestion {
 }
 
 interface Question extends RawQuestion {
-  all_answers: string[]; // Made required
+  all_answers: string[];
 }
 
 interface QuizContextProps {
@@ -33,9 +32,9 @@ interface QuizContextProps {
   lobbyId: string | null;
   submitAnswer: (answer: string) => Promise<void>;
   fetchQuestions: () => Promise<void>;
+  subject: string | null;
 }
 
-// Define interfaces for the data structures being upserted
 interface LobbyPlayer {
   lobby_id: string;
   player_id: string;
@@ -56,18 +55,19 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const { lobby } = useLobby();
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [score, setScore] = useState<number>(0);
   const [isQuizOver, setIsQuizOver] = useState<boolean>(false);
   const [lobbyId, setLobbyId] = useState<string | null>(null);
+  const [subject, setSubject] = useState<string | null>(null);
 
-  // Set lobbyId when lobby is available
+  // Set lobbyId and subject when lobby is available
   useEffect(() => {
     if (lobby) {
       setLobbyId(lobby.id);
+      setSubject(lobby.subject || null);
     }
   }, [lobby]);
 
@@ -81,13 +81,30 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
     return shuffled;
   }, []);
 
-  // Fetch questions when lobby status is "in progress"
+  // Function to load questions based on subject
+  const loadQuestionsBySubject = useCallback(
+    async (subjectId: string): Promise<RawQuestion[]> => {
+      try {
+        const questionsModule = await import(`../data/${subjectId}.json`);
+        return questionsModule.default;
+      } catch (error) {
+        console.error(`Error loading questions for subject ${subjectId}:`, error);
+        return [];
+      }
+    },
+    []
+  );
+
+  // Fetch questions when lobby status is "in progress" and subject is selected
   useEffect(() => {
-    if (!lobby || lobby.status !== 'in progress') return;
+    if (!lobby || lobby.status !== 'in progress' || !subject) return;
 
     const fetchQuestionsInternal = async () => {
       try {
-        const shuffledQuestions: Question[] = questionsData.map((q: RawQuestion) => ({
+        // Fetch questions based on the selected subject
+        const rawQuestions = await loadQuestionsBySubject(subject);
+
+        const shuffledQuestions: Question[] = rawQuestions.map((q: RawQuestion) => ({
           ...q,
           all_answers: shuffleAnswers(q),
         }));
@@ -102,7 +119,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
     };
 
     fetchQuestionsInternal();
-  }, [lobby, shuffleAnswers]);
+  }, [lobby, shuffleAnswers, subject, loadQuestionsBySubject]);
 
   const submitAnswer = useCallback(
     async (answer: string) => {
@@ -126,7 +143,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
           const { error: upsertError } = await supabase
             .from('lobby_players')
             .upsert(lobbyPlayer, {
-              onConflict: 'lobby_id,player_id', // Changed to comma-separated string
+              onConflict: 'lobby_id,player_id',
             });
 
           if (upsertError) {
@@ -165,7 +182,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
           const { data: answerData, error: answerError } = await supabase
             .from('answers')
             .upsert(playerAnswer, {
-              onConflict: 'lobby_id,player_id,question_id', // Changed to comma-separated string
+              onConflict: 'lobby_id,player_id,question_id',
             })
             .single();
 
@@ -182,31 +199,68 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex((prev) => prev + 1);
       } else {
+        // Player has finished all questions
         setIsQuizOver(true);
 
-        // Update lobby status to 'completed'
+        // Update player's 'finished' flag and 'completed_at' timestamp in 'lobby_players'
         if (lobbyId) {
           try {
-            console.log('Updating lobby status to completed.');
-            const { data, error } = await supabase
-              .from('lobbies')
-              .update({ status: 'completed' })
-              .eq('id', lobbyId)
-              .select('*')
+            console.log('Marking player as finished.');
+            const { error: finishError } = await supabase
+              .from('lobby_players')
+              .update({ finished: true, completed_at: new Date().toISOString() })
+              .eq('lobby_id', lobbyId)
+              .eq('player_id', user.id)
               .single();
 
-            if (error) {
-              console.error('Error completing lobby:', error.message);
+            if (finishError) {
+              console.error('Error marking player as finished:', finishError.message);
             } else {
-              console.log('Lobby status updated to completed:', data);
+              console.log('Player marked as finished.');
             }
           } catch (error) {
-            console.error('Error completing lobby:', error);
+            console.error('Error marking player as finished:', error);
           }
         }
 
-        // Navigate to the results page
-        navigate('/results');
+        // Check if all players have finished
+        if (lobbyId) {
+          try {
+            console.log('Checking if all players have finished.');
+            const { data, error } = await supabase
+              .from('lobby_players')
+              .select('finished')
+              .eq('lobby_id', lobbyId);
+
+            if (error) {
+              console.error('Error checking players\' finished status:', error.message);
+            } else {
+              const allFinished = data.every((player: any) => player.finished);
+              if (allFinished) {
+                console.log('All players have finished. Updating lobby status to completed.');
+                const { error: statusError } = await supabase
+                  .from('lobbies')
+                  .update({ status: 'completed' })
+                  .eq('id', lobbyId)
+                  .single();
+
+                if (statusError) {
+                  console.error('Error updating lobby status to completed:', statusError.message);
+                } else {
+                  console.log('Lobby status updated to completed.');
+                  // LobbyContext's real-time subscription will handle navigation to /results
+                }
+              } else {
+                console.log('Not all players have finished yet.');
+                // Optionally, you can notify the player to wait for others
+              }
+            }
+          } catch (error) {
+            console.error('Error checking if all players have finished:', error);
+          }
+        }
+
+        // Removed navigate('/results'); since LobbyContext handles navigation
       }
     },
     [
@@ -215,14 +269,15 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
       isQuizOver,
       user,
       lobbyId,
-      navigate,
     ]
   );
 
   const fetchQuestions = useCallback(async () => {
-    if (!lobbyId) return;
+    if (!lobbyId || !subject) return;
 
-    const shuffledQuestions: Question[] = questionsData.map((q: RawQuestion) => ({
+    const rawQuestions = await loadQuestionsBySubject(subject);
+
+    const shuffledQuestions: Question[] = rawQuestions.map((q: RawQuestion) => ({
       ...q,
       all_answers: shuffleAnswers(q),
     }));
@@ -231,7 +286,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
     setCurrentQuestionIndex(0);
     setScore(0);
     setIsQuizOver(false);
-  }, [lobbyId, shuffleAnswers]);
+  }, [lobbyId, shuffleAnswers, loadQuestionsBySubject, subject]);
 
   return (
     <QuizContext.Provider
@@ -243,6 +298,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
         lobbyId,
         submitAnswer,
         fetchQuestions,
+        subject, // Provide subject
       }}
     >
       {children}

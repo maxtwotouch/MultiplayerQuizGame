@@ -1,8 +1,10 @@
 // src/pages/Results.tsx
+
 import React, { useEffect, useState } from 'react';
 import { useQuiz } from '../contexts/QuizContext';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import { useLobby } from '../contexts/LobbyContext'; // Import useLobby
 
 interface Result {
   player_id: string;
@@ -11,7 +13,8 @@ interface Result {
 }
 
 const Results: React.FC = () => {
-  const { isQuizOver, lobbyId } = useQuiz();
+  const { lobbyId, questions } = useQuiz(); // Access questions from QuizContext
+  const { lobby } = useLobby(); // Access lobby status
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
@@ -19,9 +22,10 @@ const Results: React.FC = () => {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        if (!isQuizOver || !lobbyId) {
-          console.log('Quiz is not over or lobby ID is missing. Redirecting to quiz.');
-          navigate('/quiz');
+        // Ensure the lobby exists and is completed
+        if (!lobby || lobby.status !== 'completed') {
+          console.log('Quiz is not completed or lobby is missing. Redirecting to home.');
+          navigate('/');
           return;
         }
 
@@ -34,7 +38,7 @@ const Results: React.FC = () => {
             scores (score)
           `)
           .eq('lobby_id', lobbyId)
-          .order('score', { ascending: false, foreignTable: 'scores' }); // Updated line
+          .order('score', { ascending: false, foreignTable: 'scores' }); // Sort by score descendingly
 
         if (error) {
           console.error('Error fetching results:', error);
@@ -57,7 +61,7 @@ const Results: React.FC = () => {
     };
 
     fetchResults();
-  }, [isQuizOver, lobbyId, navigate]);
+  }, [lobby, lobbyId, navigate]);
 
   const handleReturnHome = () => {
     console.log('Returning to home page.');
@@ -68,14 +72,17 @@ const Results: React.FC = () => {
     return <p>Loading results...</p>;
   }
 
+  // Calculate total number of questions
+  const totalQuestions = questions.length;
+
   return (
-    <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+    <div style={{ textAlign: 'center', marginTop: '2rem', padding: '1rem', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
       <h2>Quiz Results</h2>
       {results.length > 0 ? (
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {results.map((result, index) => (
             <li key={result.player_id} style={{ margin: '0.5rem 0' }}>
-              {index + 1}. {result.name}: {result.score} points
+              {index + 1}. {result.name}: {result.score} out of {totalQuestions} points
             </li>
           ))}
         </ul>

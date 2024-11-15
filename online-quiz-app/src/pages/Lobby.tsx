@@ -1,4 +1,5 @@
 // src/pages/Lobby.tsx
+
 import React from 'react';
 import { useLobby } from '../contexts/LobbyContext';
 import CreateLobby from '../components/Lobby/CreateLobby';
@@ -6,6 +7,7 @@ import JoinLobby from '../components/Lobby/JoinLobby';
 import PlayerList from '../components/Lobby/PlayerList';
 import StartGameButton from '../components/Lobby/StartGameButton';
 import LeaveLobbyButton from '../components/Lobby/LeaveLobbyButton';
+import SubjectSelector from '../components/Lobby/SubjectSelector'; // Import the SubjectSelector
 
 const Lobby: React.FC = () => {
   const { lobby } = useLobby();
@@ -25,6 +27,7 @@ const Lobby: React.FC = () => {
             Your Lobby Code: <strong>{lobby.code}</strong>
           </p>
           <PlayerList />
+          {lobby.host && <SubjectSelector />} {/* Render SubjectSelector if host */}
           <div style={styles.buttonsContainer}>
             {lobby.host && <StartGameButton />}
             <LeaveLobbyButton />

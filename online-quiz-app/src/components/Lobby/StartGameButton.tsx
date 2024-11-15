@@ -2,40 +2,32 @@
 
 import React from 'react';
 import { useLobby } from '../../contexts/LobbyContext';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 const StartGameButton: React.FC = () => {
-  const { startGame } = useLobby();
+  const { lobby, startGame } = useLobby();
 
   const handleStartGame = async () => {
+    if (!lobby?.subject) {
+      alert('Please select a subject before starting the game.');
+      return;
+    }
+
     try {
       await startGame();
-      toast.success('Game has started!');
-      // No need to navigate here as LobbyContext handles navigation for all users
-    } catch (error: any) {
-      console.error('Start Game Error:', error.message || error);
-      toast.error('Failed to start the game. Please try again.');
+    } catch (error) {
+      console.error('Failed to start the game:', error);
+      alert('Failed to start the game. Please try again.');
     }
   };
 
   return (
-    <div style={{ marginTop: '1rem' }}>
-      <button
-        onClick={handleStartGame}
-        style={{
-          padding: '0.5rem 1rem',
-          backgroundColor: '#4CAF50',
-          color: '#fff',
-          border: 'none',
-          cursor: 'pointer',
-          borderRadius: '4px',
-        }}
-      >
-        Start Game
-      </button>
-      <ToastContainer />
-    </div>
+    <button
+      onClick={handleStartGame}
+      className="bg-blue-500 text-white px-4 py-2 rounded"
+      disabled={!lobby?.subject} // Disable if no subject selected
+    >
+      Start Game
+    </button>
   );
 };
 

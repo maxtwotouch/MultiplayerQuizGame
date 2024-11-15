@@ -3,12 +3,13 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from './AuthContext';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
 interface Lobby {
   id: string;
   code: string;
   host: boolean;
+  subject: string | null; // Add subject to lobby state
   status: 'waiting' | 'in progress' | 'completed';
 }
 
@@ -18,6 +19,7 @@ interface LobbyContextProps {
   joinLobby: (name: string, code: string) => Promise<void>;
   startGame: () => Promise<void>;
   leaveLobby: () => Promise<void>;
+  updateSubject: (subject: string) => Promise<void>; // Exposed function
 }
 
 const LobbyContext = createContext<LobbyContextProps | undefined>(undefined);
@@ -44,7 +46,7 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, [lobby]);
 
-  // Real-time subscription to lobby status changes
+  // Real-time subscription to lobby status and subject changes
   useEffect(() => {
     if (!lobby) return;
 
@@ -59,13 +61,18 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           filter: `id=eq.${lobby.id}`,
         },
         payload => {
-          console.log('Lobby status updated:', payload);
-          if (payload.new.status === 'in progress') {
-            setLobby(prev => (prev ? { ...prev, status: 'in progress' } : prev));
-            navigate('/quiz'); // Navigate non-host users to /quiz
-          } else if (payload.new.status === 'completed') {
-            // Handle game completion if needed
-            navigate('/results');
+          console.log('Lobby updated:', payload);
+          const { status, subject } = payload.new;
+          setLobby(prev =>
+            prev
+              ? { ...prev, status, subject }
+              : prev
+          );
+
+          if (status === 'in progress') {
+            navigate('/quiz'); // Navigate all users to /quiz
+          } else if (status === 'completed') {
+            navigate('/results'); // Navigate all users to /results
           }
         }
       )
@@ -112,10 +119,10 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const code = await generateLobbyCode();
 
     try {
-      // Insert new lobby
+      // Insert new lobby with subject as null
       const { data: lobbyData, error: lobbyError } = await supabase
         .from('lobbies')
-        .insert([{ code, host_id: user.id, status: 'waiting' }])
+        .insert([{ code, host_id: user.id, status: 'waiting', subject: null }]) // Initialize subject
         .select('*')
         .single();
 
@@ -140,6 +147,7 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         code: lobbyData.code,
         host: true,
         status: lobbyData.status,
+        subject: lobbyData.subject, // Include subject
       });
     } catch (error: any) {
       console.error('Create Lobby Error:', error.message || error);
@@ -194,6 +202,7 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         code: lobbyData.code,
         host: false,
         status: lobbyData.status,
+        subject: lobbyData.subject, // Include subject
       });
     } catch (error: any) {
       console.error('Join Lobby Error:', error.message || error);
@@ -260,8 +269,53 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
+  // New function to update the subject
+  const updateSubject = async (subject: string) => {
+    if (!lobby) {
+      console.error('No lobby available to update the subject.');
+      return;
+    }
+
+    try {
+      // Update the lobby's subject in the database
+      const { data, error } = await supabase
+        .from('lobbies')
+        .update({ subject })
+        .eq('id', lobby.id)
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error updating subject:', error.message);
+        throw error;
+      }
+
+      // Update the local lobby state
+      setLobby((prev) =>
+        prev
+          ? {
+              ...prev,
+              subject: data.subject,
+            }
+          : prev
+      );
+    } catch (error: any) {
+      console.error('Update Subject Error:', error.message || error);
+      throw error;
+    }
+  };
+
   return (
-    <LobbyContext.Provider value={{ lobby, createLobby, joinLobby, startGame, leaveLobby }}>
+    <LobbyContext.Provider
+      value={{
+        lobby,
+        createLobby,
+        joinLobby,
+        startGame,
+        leaveLobby,
+        updateSubject, // Expose the new function
+      }}
+    >
       {children}
     </LobbyContext.Provider>
   );

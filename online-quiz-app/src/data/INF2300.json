@@ -1,0 +1,123 @@
+[
+    {
+      "id": "1",
+      "question": "Which layer of the Internet protocol stack is responsible for routing packets?",
+      "correct_answer": "Network Layer",
+      "wrong_answers": ["Transport Layer", "Application Layer", "Link Layer"]
+    },
+    {
+      "id": "2",
+      "question": "What does a NAT-enabled router do?",
+      "correct_answer": "Maps private IP addresses to a public IP address",
+      "wrong_answers": ["Encrypts data packets", "Routes traffic between LANs", "Blocks all external traffic"]
+    },
+    {
+      "id": "3",
+      "question": "Which protocol is used for secure communication over the internet?",
+      "correct_answer": "HTTPS",
+      "wrong_answers": ["HTTP", "FTP", "SMTP"]
+    },
+    {
+      "id": "4",
+      "question": "What is the primary purpose of the Selective Repeat protocol?",
+      "correct_answer": "To retransmit only unacknowledged packets",
+      "wrong_answers": ["To retransmit all packets after a timeout", "To prevent data loss due to congestion", "To encrypt data during transmission"]
+    },
+    {
+      "id": "5",
+      "question": "What is a primary advantage of the peer-to-peer architecture?",
+      "correct_answer": "Improved scalability",
+      "wrong_answers": ["Centralized control", "Simplified security management", "Reduced latency"]
+    },
+    {
+      "id": "6",
+      "question": "What is the purpose of port numbers in networking?",
+      "correct_answer": "To identify specific processes or services",
+      "wrong_answers": ["To encrypt communication", "To assign IP addresses", "To determine packet size"]
+    },
+    {
+      "id": "7",
+      "question": "Which layer of the Internet protocol stack handles flow control?",
+      "correct_answer": "Transport Layer",
+      "wrong_answers": ["Network Layer", "Physical Layer", "Application Layer"]
+    },
+    {
+      "id": "8",
+      "question": "What is the key benefit of IPv6 over IPv4?",
+      "correct_answer": "Larger address space",
+      "wrong_answers": ["Faster data transmission", "Improved encryption", "Simplified routing"]
+    },
+    {
+      "id": "9",
+      "question": "What does the 'bind' method in the socket API do?",
+      "correct_answer": "Associates a socket with a specific address and port",
+      "wrong_answers": ["Establishes a connection to a remote host", "Sends data through a socket", "Closes the socket"]
+    },
+    {
+      "id": "10",
+      "question": "What does the tit-for-tat mechanism in BitTorrent aim to achieve?",
+      "correct_answer": "Encouraging fairness in data sharing",
+      "wrong_answers": ["Reducing network congestion", "Improving encryption", "Centralizing file distribution"]
+    },
+    {
+      "id": "11",
+      "question": "Which layer in the Internet protocol stack is responsible for error detection and correction?",
+      "correct_answer": "Link Layer",
+      "wrong_answers": ["Application Layer", "Network Layer", "Transport Layer"]
+    },
+    {
+      "id": "12",
+      "question": "What is the primary purpose of DNS (Domain Name System)?",
+      "correct_answer": "Translating domain names to IP addresses",
+      "wrong_answers": ["Securing data transmission", "Allocating MAC addresses", "Managing email servers"]
+    },
+    {
+      "id": "13",
+      "question": "What is a datagram in the context of networking?",
+      "correct_answer": "A basic transfer unit in a packet-switched network",
+      "wrong_answers": ["A large file sent over the internet", "A secure communication protocol", "A synonym for an IP packet"]
+    },
+    {
+      "id": "14",
+      "question": "What is one reason for delay in a network?",
+      "correct_answer": "Propagation delay",
+      "wrong_answers": ["Packet duplication", "Data compression", "Protocol mismatch"]
+    },
+    {
+      "id": "15",
+      "question": "Which algorithm is used for shortest path routing in a network?",
+      "correct_answer": "Dijkstra's Algorithm",
+      "wrong_answers": ["Greedy Algorithm", "Link State Algorithm", "Bellman-Ford Algorithm"]
+    },
+    {
+      "id": "16",
+      "question": "What does '0.0.0.0' as a host value in the bind method signify?",
+      "correct_answer": "Bind to all available network interfaces",
+      "wrong_answers": ["Bind to the local host only", "Specify no network interfaces", "Indicate an invalid IP address"]
+    },
+    {
+      "id": "17",
+      "question": "What is flow control in TCP designed to prevent?",
+      "correct_answer": "Overloading the receiver with data",
+      "wrong_answers": ["Overloading the sender with data", "Congestion in the network", "Packet loss at the router"]
+    },
+    {
+      "id": "18",
+      "question": "What is one main benefit of the Link State algorithm over the Distance Vector algorithm?",
+      "correct_answer": "Faster convergence",
+      "wrong_answers": ["Simplicity of implementation", "Lower overhead", "Better packet fragmentation"]
+    },
+    {
+      "id": "19",
+      "question": "What is the key feature of the Distance Vector algorithm?",
+      "correct_answer": "Routers exchange information only with their neighbors",
+      "wrong_answers": ["Routers exchange full topology information", "It minimizes delay", "It uses centralized routing tables"]
+    },
+    {
+      "id": "20",
+      "question": "What happens during encapsulation in network communication?",
+      "correct_answer": "Data is wrapped with protocol-specific headers and trailers",
+      "wrong_answers": ["Data is encrypted for secure transmission", "Packets are fragmented into smaller units", "Data is transmitted without modification"]
+    }
+  ]
+  
