@@ -15,7 +15,6 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './contexts/AuthContext';
 import { useLobby } from './contexts/LobbyContext';
 import { useQuiz } from './contexts/QuizContext';
-import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const App: React.FC = () => {
