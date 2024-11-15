@@ -43,7 +43,6 @@ const Question: React.FC<QuestionProps> = ({
       {/* Display feedback only after submission */}
       {isSubmitted && (
         <p className={isCorrect ? 'text-green-500' : 'text-red-500'}>
-          {isCorrect ? 'Correct!' : 'Incorrect.'}
         </p>
       )}
     </div>
