@@ -11,7 +11,6 @@ import React, {
 import { supabase } from '../supabaseClient';
 import { useLobby } from './LobbyContext';
 import { useAuth } from './AuthContext';
-// import { subjects } from '../data/subjects';
 
 interface RawQuestion {
   id: string;
@@ -71,15 +70,21 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [lobby]);
 
-  // Shuffle answers helper using Fisher-Yates shuffle for better randomness
-  const shuffleAnswers = useCallback((question: RawQuestion): string[] => {
-    const shuffled = [...question.wrong_answers, question.correct_answer];
+  // Generic shuffle function using Fisher-Yates algorithm
+  const shuffleArray = useCallback(<T,>(array: T[]): T[] => {
+    const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
   }, []);
+
+  // Shuffle answers helper for each question
+  const shuffleAnswers = useCallback((question: RawQuestion): string[] => {
+    const shuffled = shuffleArray([...question.wrong_answers, question.correct_answer]);
+    return shuffled;
+  }, [shuffleArray]);
 
   // Function to load questions based on subject
   const loadQuestionsBySubject = useCallback(
@@ -104,12 +109,26 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
         // Fetch questions based on the selected subject
         const rawQuestions = await loadQuestionsBySubject(subject);
 
-        const shuffledQuestions: Question[] = rawQuestions.map((q: RawQuestion) => ({
+        if (!Array.isArray(rawQuestions) || rawQuestions.length === 0) {
+          console.warn(`No questions found for subject ${subject}.`);
+          setQuestions([]);
+          setIsQuizOver(true);
+          return;
+        }
+
+        // Shuffle all questions
+        const shuffledQuestions = shuffleArray(rawQuestions);
+
+        // Select up to 15 questions
+        const selectedQuestions = shuffledQuestions.slice(0, 15);
+
+        // Shuffle answers for each selected question
+        const formattedQuestions: Question[] = selectedQuestions.map((q: RawQuestion) => ({
           ...q,
           all_answers: shuffleAnswers(q),
         }));
 
-        setQuestions(shuffledQuestions);
+        setQuestions(formattedQuestions);
         setCurrentQuestionIndex(0);
         setScore(0);
         setIsQuizOver(false);
@@ -119,11 +138,11 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
     };
 
     fetchQuestionsInternal();
-  }, [lobby, shuffleAnswers, subject, loadQuestionsBySubject]);
+  }, [lobby, shuffleArray, shuffleAnswers, subject, loadQuestionsBySubject]);
 
   const submitAnswer = useCallback(
     async (answer: string) => {
-      if (!questions.length || isQuizOver || !lobbyId) return;
+      if (!questions.length || isQuizOver || !lobbyId || !user) return;
 
       const currentQuestion = questions[currentQuestionIndex];
       const isCorrect = answer === currentQuestion.correct_answer;
@@ -132,132 +151,126 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
         setScore((prev) => prev + 1);
       }
 
-      if (user && lobbyId) {
-        try {
-          // Ensure player exists in lobby_players
-          const lobbyPlayer: LobbyPlayer = {
-            lobby_id: lobbyId,
-            player_id: user.id,
-          };
+      try {
+        // Ensure player exists in lobby_players
+        const lobbyPlayer: LobbyPlayer = {
+          lobby_id: lobbyId,
+          player_id: user.id,
+        };
 
-          const { error: upsertError } = await supabase
-            .from('lobby_players')
-            .upsert(lobbyPlayer, {
-              onConflict: 'lobby_id,player_id',
-            });
+        const { error: upsertError } = await supabase
+          .from('lobby_players')
+          .upsert(lobbyPlayer, {
+            onConflict: 'lobby_id,player_id',
+          });
 
-          if (upsertError) {
-            console.error('Error upserting lobby player:', upsertError.message);
-          }
-
-          if (isCorrect) {
-            // Call the RPC function to increment the score
-            const { error: rpcError } = await supabase.rpc(
-              'increment_score',
-              {
-                p_lobby_id: lobbyId,
-                p_player_id: user.id,
-              }
-            );
-
-            if (rpcError) {
-              console.error(
-                'Error incrementing score via RPC:',
-                rpcError.message
-              );
-            } else {
-              console.log('Score incremented successfully via RPC.');
-            }
-          }
-
-          // Insert the player's answer into the 'answers' table using upsert
-          const playerAnswer: PlayerAnswer = {
-            lobby_id: lobbyId,
-            player_id: user.id,
-            question_id: currentQuestion.id,
-            answer: answer,
-            is_correct: isCorrect,
-          };
-
-          const { data: answerData, error: answerError } = await supabase
-            .from('answers')
-            .upsert(playerAnswer, {
-              onConflict: 'lobby_id,player_id,question_id',
-            })
-            .single();
-
-          if (answerError) {
-            console.error('Error upserting player answer:', answerError.message);
-          } else {
-            console.log('Player answer recorded/updated:', answerData);
-          }
-        } catch (error) {
-          console.error('Error updating scores and recording answers:', error);
+        if (upsertError) {
+          console.error('Error upserting lobby player:', upsertError.message);
         }
+
+        if (isCorrect) {
+          // Call the RPC function to increment the score
+          const { error: rpcError } = await supabase.rpc(
+            'increment_score',
+            {
+              p_lobby_id: lobbyId,
+              p_player_id: user.id,
+            }
+          );
+
+          if (rpcError) {
+            console.error(
+              'Error incrementing score via RPC:',
+              rpcError.message
+            );
+          } else {
+            console.log('Score incremented successfully via RPC.');
+          }
+        }
+
+        // Insert the player's answer into the 'answers' table using upsert
+        const playerAnswer: PlayerAnswer = {
+          lobby_id: lobbyId,
+          player_id: user.id,
+          question_id: currentQuestion.id,
+          answer: answer,
+          is_correct: isCorrect,
+        };
+
+        const { data: answerData, error: answerError } = await supabase
+          .from('answers')
+          .upsert(playerAnswer, {
+            onConflict: 'lobby_id,player_id,question_id',
+          })
+          .single();
+
+        if (answerError) {
+          console.error('Error upserting player answer:', answerError.message);
+        } else {
+          console.log('Player answer recorded/updated:', answerData);
+        }
+      } catch (error) {
+        console.error('Error updating scores and recording answers:', error);
       }
 
+      // Move to next question or end quiz
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex((prev) => prev + 1);
       } else {
         // Player has finished all questions
         setIsQuizOver(true);
 
-        // Update player's 'finished' flag and 'completed_at' timestamp in 'lobby_players'
-        if (lobbyId) {
-          try {
-            console.log('Marking player as finished.');
-            const { error: finishError } = await supabase
-              .from('lobby_players')
-              .update({ finished: true, completed_at: new Date().toISOString() })
-              .eq('lobby_id', lobbyId)
-              .eq('player_id', user!.id)
-              .single();
+        try {
+          console.log('Marking player as finished.');
+          const { error: finishError } = await supabase
+            .from('lobby_players')
+            .update({ finished: true, completed_at: new Date().toISOString() })
+            .eq('lobby_id', lobbyId)
+            .eq('player_id', user.id)
+            .single();
 
-            if (finishError) {
-              console.error('Error marking player as finished:', finishError.message);
-            } else {
-              console.log('Player marked as finished.');
-            }
-          } catch (error) {
-            console.error('Error marking player as finished:', error);
+          if (finishError) {
+            console.error('Error marking player as finished:', finishError.message);
+          } else {
+            console.log('Player marked as finished.');
           }
+        } catch (error) {
+          console.error('Error marking player as finished:', error);
         }
 
         // Check if all players have finished
-        if (lobbyId) {
-          try {
-            console.log('Checking if all players have finished.');
-            const { data, error } = await supabase
-              .from('lobby_players')
-              .select('finished')
-              .eq('lobby_id', lobbyId);
+        try {
+          console.log('Checking if all players have finished.');
+          const { data, error } = await supabase
+            .from('lobby_players')
+            .select('finished')
+            .eq('lobby_id', lobbyId);
 
-            if (error) {
-              console.error('Error checking players\' finished status:', error.message);
-            } else {
-              const allFinished = data.every((player: any) => player.finished);
-              if (allFinished) {
-                console.log('All players have finished. Updating lobby status to completed.');
-                const { error: statusError } = await supabase
-                  .from('lobbies')
-                  .update({ status: 'completed' })
-                  .eq('id', lobbyId)
-                  .single();
+          if (error) {
+            console.error('Error checking players\' finished status:', error.message);
+          } else {
+            const allFinished = data.every((player: any) => player.finished);
+            if (allFinished) {
+              console.log('All players have finished. Updating lobby status to completed.');
+              const { error: statusError } = await supabase
+                .from('lobbies')
+                .update({ status: 'completed' })
+                .eq('id', lobbyId)
+                .single();
 
-                if (statusError) {
-                  console.error('Error updating lobby status to completed:', statusError.message);
-                } else {
-                  console.log('Lobby status updated to completed.');
-                  // LobbyContext's real-time subscription will handle navigation to /results
-                }
+              if (statusError) {
+                console.error('Error updating lobby status to completed:', statusError.message);
               } else {
-                console.log('Not all players have finished yet.');
-                // Optionally, you can notify the player to wait for others
+                console.log('Lobby status updated to completed.');
+                // LobbyContext's real-time subscription will handle navigation to /results
               }
+            } else {
+              console.log('Not all players have finished yet.');
+              // Optionally, you can notify the player to wait for others
             }
-          } catch (error) {
-            console.error('Error checking if all players have finished:', error);
           }
+        } catch (error) {
+          console.error('Error checking if all players have finished:', error);
         }
 
         // Removed navigate('/results'); since LobbyContext handles navigation
@@ -269,6 +282,8 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
       isQuizOver,
       user,
       lobbyId,
+      shuffleArray,
+      shuffleAnswers,
     ]
   );
 
@@ -277,16 +292,23 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
 
     const rawQuestions = await loadQuestionsBySubject(subject);
 
-    const shuffledQuestions: Question[] = rawQuestions.map((q: RawQuestion) => ({
+    // Shuffle all questions
+    const shuffledQuestions = shuffleArray(rawQuestions);
+
+    // Select up to 15 questions
+    const selectedQuestions = shuffledQuestions.slice(0, 15);
+
+    // Shuffle answers for each selected question
+    const formattedQuestions: Question[] = selectedQuestions.map((q: RawQuestion) => ({
       ...q,
       all_answers: shuffleAnswers(q),
     }));
 
-    setQuestions(shuffledQuestions);
+    setQuestions(formattedQuestions);
     setCurrentQuestionIndex(0);
     setScore(0);
     setIsQuizOver(false);
-  }, [lobbyId, shuffleAnswers, loadQuestionsBySubject, subject]);
+  }, [lobbyId, shuffleArray, shuffleAnswers, loadQuestionsBySubject, subject]);
 
   return (
     <QuizContext.Provider

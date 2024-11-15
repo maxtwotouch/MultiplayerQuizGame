@@ -1,0 +1,359 @@
+[
+    {
+      "id": "1",
+      "question": "What is the output of `(1, 2, 3)[1]`?",
+      "correct_answer": "2",
+      "wrong_answers": ["1", "3", "Error"]
+    },
+    {
+      "id": "2",
+      "question": "What is the main characteristic of tuples in Python?",
+      "correct_answer": "They are immutable.",
+      "wrong_answers": ["They are mutable.", "They cannot store mixed data types.", "They are always ordered."]
+    },
+    {
+      "id": "3",
+      "question": "What does `w+` mode in the Python `open()` function do?",
+      "correct_answer": "Allows reading and writing, overwriting the file.",
+      "wrong_answers": [
+        "Only appends data to the file.",
+        "Only reads the file.",
+        "Only creates a file if it doesn't exist."
+      ]
+    },
+    {
+      "id": "4",
+      "question": "Which of these can be a key in a Python dictionary?",
+      "correct_answer": "Tuple",
+      "wrong_answers": ["List", "Set", "Dictionary"]
+    },
+    {
+      "id": "5",
+      "question": "What is the purpose of the `self` keyword in a Python class?",
+      "correct_answer": "It refers to the instance of the class.",
+      "wrong_answers": [
+        "It refers to the class itself.",
+        "It is used for static methods.",
+        "It is optional."
+      ]
+    },
+    {
+      "id": "6",
+      "question": "What is the difference between a class and a dictionary?",
+      "correct_answer": "Classes can have methods; dictionaries cannot.",
+      "wrong_answers": [
+        "Dictionaries can store more data types than classes.",
+        "Classes are immutable.",
+        "Dictionaries allow custom behavior."
+      ]
+    },
+    {
+      "id": "7",
+      "question": "What does `if __name__ == \"__main__\"` do?",
+      "correct_answer": "Ensures code runs only when executed directly.",
+      "wrong_answers": [
+        "Executes code in all imports.",
+        "Defines the module name.",
+        "Used only for debugging."
+      ]
+    },
+    {
+      "id": "8",
+      "question": "What is a logical error?",
+      "correct_answer": "An error that causes incorrect results.",
+      "wrong_answers": [
+        "An error that prevents program execution.",
+        "An error due to syntax issues.",
+        "An error caused by invalid imports."
+      ]
+    },
+    {
+      "id": "9",
+      "question": "Which data structure is best for a Tic-Tac-Toe board in Python?",
+      "correct_answer": "A list of lists.",
+      "wrong_answers": [
+        "A dictionary of dictionaries.",
+        "A tuple of tuples.",
+        "A set of lists."
+      ]
+    },
+    {
+      "id": "10",
+      "question": "What does the `__add__` method do in Python?",
+      "correct_answer": "Defines behavior for the '+' operator.",
+      "wrong_answers": [
+        "Overrides equality operator.",
+        "Adds methods to a class.",
+        "Adds two elements in a list."
+      ]
+    },
+    {
+      "id": "11",
+      "question": "How can you check if a number is prime in Python?",
+      "correct_answer": "Using modulo division to find divisors.",
+      "wrong_answers": [
+        "Using a dictionary of primes.",
+        "By checking only even divisors.",
+        "By dividing by itself."
+      ]
+    },
+    {
+      "id": "12",
+      "question": "What is a `dunder` method?",
+      "correct_answer": "A method with double underscores in its name.",
+      "wrong_answers": [
+        "A method used for debugging.",
+        "A method for dictionaries only.",
+        "A method that raises an error."
+      ]
+    },
+    {
+      "id": "13",
+      "question": "What does the `random.randint(0, 9)` function return?",
+      "correct_answer": "A random integer between 0 and 9.",
+      "wrong_answers": [
+        "A random float between 0 and 9.",
+        "A random integer between 1 and 10.",
+        "A random even number between 0 and 9."
+      ]
+    },
+    {
+      "id": "14",
+      "question": "What does the `permutations` function in itertools do?",
+      "correct_answer": "Generates all possible arrangements of a list.",
+      "wrong_answers": [
+        "Generates random numbers.",
+        "Creates a list of unique elements.",
+        "Sorts elements in ascending order."
+      ]
+    },
+    {
+      "id": "15",
+      "question": "What does the `str()` function do?",
+      "correct_answer": "Converts an object to a string.",
+      "wrong_answers": [
+        "Executes an object.",
+        "Creates a new object.",
+        "Checks if an object is a string."
+      ]
+    },
+    {
+      "id": "16",
+      "question": "What is the purpose of the `AttributeError` exception?",
+      "correct_answer": "It indicates an attribute reference is invalid.",
+      "wrong_answers": [
+        "It indicates a syntax error.",
+        "It indicates a division by zero.",
+        "It indicates a missing import."
+      ]
+    },
+    {
+      "id": "17",
+      "question": "What does the `TypeError` exception indicate?",
+      "correct_answer": "An operation was applied to an incorrect data type.",
+      "wrong_answers": [
+        "An operation was applied to the wrong module.",
+        "A file was not found.",
+        "A variable was not defined."
+      ]
+    },
+    {
+      "id": "18",
+      "question": "What does `with open('file.txt', 'r')` do?",
+      "correct_answer": "Opens a file for reading.",
+      "wrong_answers": [
+        "Opens a file for writing.",
+        "Appends data to the file.",
+        "Reads a file as binary."
+      ]
+    },
+    {
+      "id": "19",
+      "question": "Which Python keyword is used for error handling?",
+      "correct_answer": "try",
+      "wrong_answers": ["catch", "throw", "finally"]
+    },
+    {
+      "id": "20",
+      "question": "What does `raise ValueError('Too large!')` do?",
+      "correct_answer": "Raises a ValueError exception with a message.",
+      "wrong_answers": [
+        "Ignores the error.",
+        "Logs the error.",
+        "Fixes the error."
+      ]
+    },
+    {
+      "id": "21",
+      "question": "What is the purpose of Python's `for` loop?",
+      "correct_answer": "To iterate over a sequence.",
+      "wrong_answers": [
+        "To execute a block of code infinitely.",
+        "To check a condition.",
+        "To define a function."
+      ]
+    },
+    {
+      "id": "22",
+      "question": "What is a Python class?",
+      "correct_answer": "A blueprint for creating objects.",
+      "wrong_answers": [
+        "A built-in data type.",
+        "A list of functions.",
+        "A dictionary of methods."
+      ]
+    },
+    {
+      "id": "23",
+      "question": "What is the default return value of a Python function?",
+      "correct_answer": "None",
+      "wrong_answers": ["0", "False", "Undefined"]
+    },
+    {
+      "id": "24",
+      "question": "What does the Python `continue` statement do?",
+      "correct_answer": "Skips the current iteration of a loop.",
+      "wrong_answers": [
+        "Exits the loop.",
+        "Stops program execution.",
+        "Repeats the loop indefinitely."
+      ]
+    },
+    {
+      "id": "25",
+      "question": "Which method is called when an object is initialized in Python?",
+      "correct_answer": "__init__",
+      "wrong_answers": ["__new__", "__del__", "__str__"]
+    },
+    {
+      "id": "26",
+      "question": "What is the difference between `==` and `is` in Python?",
+      "correct_answer": "`==` checks value equality, `is` checks identity.",
+      "wrong_answers": [
+        "`is` checks value equality, `==` checks identity.",
+        "`is` only works for integers.",
+        "There is no difference."
+      ]
+    },
+    {
+      "id": "27",
+      "question": "What does `len()` do in Python?",
+      "correct_answer": "Returns the length of an object.",
+      "wrong_answers": [
+        "Counts the number of methods in an object.",
+        "Finds the maximum value in a list.",
+        "Converts an object to a list."
+      ]
+    },
+    {
+      "id": "28",
+      "question": "Which operator is used for floor division in Python?",
+      "correct_answer": "//",
+      "wrong_answers": ["/", "%", "**"]
+    },
+    {
+      "id": "29",
+      "question": "What does `help()` do in Python?",
+      "correct_answer": "Displays documentation about an object.",
+      "wrong_answers": [
+        "Executes an object.",
+        "Returns an object’s attributes.",
+        "Displays an object's size."
+      ]
+    },
+    {
+      "id": "30",
+      "question": "What is the purpose of the Python `dir()` function?",
+      "correct_answer": "Lists attributes and methods of an object.",
+      "wrong_answers": [
+        "Deletes an object.",
+        "Initializes an object.",
+        "Converts an object to a string."
+      ]
+    },
+    {
+      "id": "31",
+      "question": "What does the `max()` function do in Python?",
+      "correct_answer": "Returns the largest item in an iterable.",
+      "wrong_answers": [
+        "Finds the first item in an iterable.",
+        "Counts the elements in an iterable.",
+        "Sorts the items in ascending order."
+      ]
+    },
+    {
+      "id": "32",
+      "question": "Which method converts a string to lowercase?",
+      "correct_answer": "lower()",
+      "wrong_answers": ["upper()", "capitalize()", "strip()"]
+    },
+    {
+      "id": "33",
+      "question": "What does `type()` do in Python?",
+      "correct_answer": "Returns the data type of an object.",
+      "wrong_answers": [
+        "Creates a new data type.",
+        "Changes the data type of an object.",
+        "Returns the length of an object."
+      ]
+    },
+    {
+      "id": "34",
+      "question": "Which of these is used for creating an empty set in Python?",
+      "correct_answer": "set()",
+      "wrong_answers": ["{}", "[]", "()"]
+    },
+    {
+      "id": "35",
+      "question": "What is the purpose of `assert` in Python?",
+      "correct_answer": "To test a condition in debugging.",
+      "wrong_answers": [
+        "To raise exceptions.",
+        "To define a new function.",
+        "To stop program execution."
+      ]
+    },
+    {
+      "id": "36",
+      "question": "What does the `pass` statement do?",
+      "correct_answer": "Acts as a placeholder in Python code.",
+      "wrong_answers": [
+        "Stops execution.",
+        "Continues the loop.",
+        "Returns a value."
+      ]
+    },
+    {
+      "id": "37",
+      "question": "What does `abs()` return?",
+      "correct_answer": "The absolute value of a number.",
+      "wrong_answers": [
+        "The square of a number.",
+        "The rounded value of a number.",
+        "The minimum value in a list."
+      ]
+    },
+    {
+      "id": "38",
+      "question": "Which method is used to remove whitespace from the start and end of a string?",
+      "correct_answer": "strip()",
+      "wrong_answers": ["trim()", "split()", "slice()"]
+    },
+    {
+      "id": "39",
+      "question": "Which statement creates a new dictionary?",
+      "correct_answer": "dict()",
+      "wrong_answers": ["set()", "list()", "tuple()"]
+    },
+    {
+      "id": "40",
+      "question": "What does `isinstance()` do?",
+      "correct_answer": "Checks if an object is an instance of a class.",
+      "wrong_answers": [
+        "Creates a new class instance.",
+        "Checks the data type of an object.",
+        "Deletes an instance of a class."
+      ]
+    }
+  ]
+  
