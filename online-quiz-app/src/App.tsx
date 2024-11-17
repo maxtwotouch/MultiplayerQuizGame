@@ -8,13 +8,10 @@ import Quiz from './pages/Quiz';
 import Results from './pages/Results';
 import Register from './pages/Register';
 import Navbar from './components/Navbar';
-import { AuthProvider } from './contexts/AuthContext';
-import { LobbyProvider } from './contexts/LobbyContext';
-import { QuizProvider } from './contexts/QuizContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { LobbyProvider, useLobby } from './contexts/LobbyContext';
+import { QuizProvider, useQuiz } from './contexts/QuizContext'; // Assuming there's a QuizContext
 import ErrorBoundary from './components/ErrorBoundary';
-import { useAuth } from './contexts/AuthContext';
-import { useLobby } from './contexts/LobbyContext';
-import { useQuiz } from './contexts/QuizContext';
 import 'react-toastify/dist/ReactToastify.css';
 
 const App: React.FC = () => {
@@ -30,18 +27,7 @@ const App: React.FC = () => {
                   <AppRoutes />
                 </div>
               </div>
-              {/* Centralized ToastContainer */}
-              {/* <ToastContainer 
-                position="top-right" 
-                autoClose={5000} 
-                hideProgressBar={false} 
-                newestOnTop 
-                closeOnClick 
-                rtl={false} 
-                pauseOnFocusLoss 
-                draggable 
-                pauseOnHover 
-              /> */}
+              {/* Centralized ToastContainer can be added here if needed */}
             </QuizProvider>
           </LobbyProvider>
         </AuthProvider>
@@ -50,17 +36,22 @@ const App: React.FC = () => {
   );
 };
 
+// Separate component for routes to use hooks
 const AppRoutes: React.FC = () => {
-  const { user, loading } = useAuth();
-  const { lobby } = useLobby();
-  const { isQuizOver } = useQuiz(); // Access isQuizOver
+  const { user, loading: authLoading } = useAuth();
+  const { lobby, loading: lobbyLoading } = useLobby();
+  const { isQuizOver } = useQuiz(); // Access isQuizOver from QuizContext
 
-  if (loading) {
+  // Show loading indicator until both contexts have loaded
+  if (authLoading || lobbyLoading) {
     return (
       <div className="flex justify-center items-center h-screen bg-base-100">
         <div className="flex flex-col items-center">
           {/* DaisyUI Spinner */}
-          <div className="radial-progress animate-spin bg-primary text-primary-content" style={{ "--value": 70 } as React.CSSProperties}>
+          <div
+            className="radial-progress animate-spin bg-primary text-primary-content"
+            style={{ '--value': 70 } as React.CSSProperties}
+          >
             70%
           </div>
           <span className="mt-4 text-lg">Loading...</span>
@@ -71,12 +62,23 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
+      {/* Home Route */}
       <Route path="/" element={<Home />} />
 
       {/* Register Route */}
       <Route
         path="/register"
-        element={user && !lobby ? <Navigate to="/lobby" replace /> : <Register />}
+        element={
+          user ? (
+            lobby ? (
+              <Navigate to="/lobby" replace />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          ) : (
+            <Register />
+          )
+        }
       />
 
       {/* Lobby Route */}
@@ -89,7 +91,7 @@ const AppRoutes: React.FC = () => {
       <Route
         path="/quiz"
         element={
-          lobby && lobby.status === 'in progress' ? <Quiz /> : <Navigate to="/" replace />
+          lobby && lobby.status === 'in progress' ? <Quiz /> : <Navigate to="/lobby" replace />
         }
       />
 
@@ -100,7 +102,7 @@ const AppRoutes: React.FC = () => {
           lobby && (lobby.status === 'completed' || isQuizOver) ? (
             <Results />
           ) : (
-            <Navigate to="/" replace />
+            <Navigate to="/lobby" replace />
           )
         }
       />

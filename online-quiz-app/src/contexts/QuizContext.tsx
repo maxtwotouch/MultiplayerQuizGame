@@ -31,7 +31,6 @@ interface QuizContextProps {
   lobbyId: string | null;
   submitAnswer: (answer: string) => Promise<void>;
   fetchQuestions: () => Promise<void>;
-  subject: string | null;
 }
 
 interface LobbyPlayer {
@@ -67,6 +66,9 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
     if (lobby) {
       setLobbyId(lobby.id);
       setSubject(lobby.subject || null);
+      console.log('Lobby ID set to:', lobby.id);
+      console.log('Lobby subject set to:', lobby.subject);
+      console.log('Lobby status:', lobby.status);
     }
   }, [lobby]);
 
@@ -81,71 +83,182 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   // Shuffle answers helper for each question
-  const shuffleAnswers = useCallback((question: RawQuestion): string[] => {
-    const shuffled = shuffleArray([...question.wrong_answers, question.correct_answer]);
-    return shuffled;
-  }, [shuffleArray]);
+  const shuffleAnswers = useCallback(
+    (question: RawQuestion): string[] => {
+      const shuffled = shuffleArray([
+        ...question.wrong_answers,
+        question.correct_answer,
+      ]);
+      return shuffled;
+    },
+    [shuffleArray]
+  );
 
   // Function to load questions based on subject
   const loadQuestionsBySubject = useCallback(
     async (subjectId: string): Promise<RawQuestion[]> => {
       try {
         const questionsModule = await import(`../data/${subjectId}.json`);
+        console.log(`Loaded questions for subject "${subjectId}":`, questionsModule.default);
         return questionsModule.default;
       } catch (error) {
-        console.error(`Error loading questions for subject ${subjectId}:`, error);
+        console.error(`Error loading questions for subject "${subjectId}":`, error);
         return [];
       }
     },
     []
   );
 
-  // Fetch questions when lobby status is "in progress" and subject is selected
-  useEffect(() => {
-    if (!lobby || lobby.status !== 'in progress' || !subject) return;
+  // Function to initialize the quiz
+  const initializeQuiz = useCallback(async () => {
+    if (!lobbyId || !subject) {
+      console.log('initializeQuiz: Missing lobbyId or subject.');
+      return;
+    }
 
-    const fetchQuestionsInternal = async () => {
-      try {
-        // Fetch questions based on the selected subject
-        const rawQuestions = await loadQuestionsBySubject(subject);
+    try {
+      console.log(`Initializing quiz for subject: ${subject}`);
+      const rawQuestions = await loadQuestionsBySubject(subject);
 
-        if (!Array.isArray(rawQuestions) || rawQuestions.length === 0) {
-          console.warn(`No questions found for subject ${subject}.`);
-          setQuestions([]);
-          setIsQuizOver(true);
-          return;
-        }
+      if (!Array.isArray(rawQuestions) || rawQuestions.length === 0) {
+        console.warn(`No questions found for subject "${subject}".`);
+        setQuestions([]);
+        setIsQuizOver(true);
+        return;
+      }
 
-        // Shuffle all questions
-        const shuffledQuestions = shuffleArray(rawQuestions);
+      // Shuffle all questions
+      const shuffledQuestions = shuffleArray(rawQuestions);
 
-        // Select up to 15 questions
-        const selectedQuestions = shuffledQuestions.slice(0, 15);
+      // Select up to 15 questions
+      const selectedQuestions = shuffledQuestions.slice(0, 15);
 
-        // Shuffle answers for each selected question
-        const formattedQuestions: Question[] = selectedQuestions.map((q: RawQuestion) => ({
+      // Shuffle answers for each selected question
+      const formattedQuestions: Question[] = selectedQuestions.map(
+        (q: RawQuestion) => ({
           ...q,
           all_answers: shuffleAnswers(q),
-        }));
+        })
+      );
 
-        setQuestions(formattedQuestions);
-        setCurrentQuestionIndex(0);
-        setScore(0);
-        setIsQuizOver(false);
-      } catch (error) {
-        console.error('Error fetching questions:', error);
+      console.log('Formatted Questions:', formattedQuestions);
+
+      setQuestions(formattedQuestions);
+      setCurrentQuestionIndex(0);
+      setScore(0);
+      setIsQuizOver(false);
+    } catch (error) {
+      console.error('Error initializing quiz:', error);
+    }
+  }, [lobbyId, loadQuestionsBySubject, shuffleArray, shuffleAnswers, subject]);
+
+  // Load quiz state from localStorage on mount or when subject changes
+  useEffect(() => {
+    if (subject && lobby && user) {
+      const storedQuizState = localStorage.getItem(
+        `quiz_state_${lobby.id}_${user.id}`
+      );
+      if (storedQuizState) {
+        try {
+          const parsedState = JSON.parse(storedQuizState);
+
+          // Validate and set currentQuestionIndex
+          if (
+            typeof parsedState.currentQuestionIndex === 'number' &&
+            parsedState.currentQuestionIndex >= 0 &&
+            parsedState.currentQuestionIndex < (parsedState.questions?.length || 0)
+          ) {
+            setCurrentQuestionIndex(parsedState.currentQuestionIndex);
+          } else {
+            setCurrentQuestionIndex(0);
+          }
+
+          // Validate and set score
+          if (typeof parsedState.score === 'number' && parsedState.score >= 0) {
+            setScore(parsedState.score);
+          } else {
+            setScore(0);
+          }
+
+          // Validate and set isQuizOver
+          if (typeof parsedState.isQuizOver === 'boolean') {
+            setIsQuizOver(parsedState.isQuizOver);
+          } else {
+            setIsQuizOver(false);
+          }
+
+          // Validate and set questions
+          if (
+            Array.isArray(parsedState.questions) &&
+            parsedState.questions.length > 0
+          ) {
+            setQuestions(parsedState.questions);
+          } else {
+            setQuestions([]);
+            initializeQuiz();
+          }
+
+          console.log('Loaded quiz state from localStorage:', parsedState);
+        } catch (error) {
+          console.error('Error parsing stored quiz state:', error);
+          // Reset state if parsing fails
+          setCurrentQuestionIndex(0);
+          setScore(0);
+          setIsQuizOver(false);
+          setQuestions([]);
+          initializeQuiz();
+        }
+      } else {
+        console.log('No stored quiz state found. Initializing quiz.');
+        initializeQuiz();
       }
-    };
+    }
+  }, [subject, lobby, user, initializeQuiz]);
 
-    fetchQuestionsInternal();
-  }, [lobby, shuffleArray, shuffleAnswers, subject, loadQuestionsBySubject]);
+  // Save quiz state to localStorage whenever relevant states change
+  useEffect(() => {
+    if (lobby && user) {
+      const quizState = {
+        questions,
+        currentQuestionIndex,
+        score,
+        isQuizOver,
+        // Exclude 'subject' from being saved
+      };
+      localStorage.setItem(
+        `quiz_state_${lobby.id}_${user.id}`,
+        JSON.stringify(quizState)
+      );
+      console.log('Saved quiz state to localStorage:', quizState);
+    }
+  }, [questions, currentQuestionIndex, score, isQuizOver, lobby, user]);
+
+  // Clear quiz state from localStorage when the quiz is over
+  useEffect(() => {
+    if (isQuizOver && lobbyId && user) {
+      localStorage.removeItem(`quiz_state_${lobbyId}_${user.id}`);
+      console.log('Cleared quiz state from localStorage.');
+    }
+  }, [isQuizOver, lobbyId, user]);
 
   const submitAnswer = useCallback(
     async (answer: string) => {
-      if (!questions.length || isQuizOver || !lobbyId || !user) return;
+      if (!questions.length || isQuizOver || !lobbyId || !user) {
+        console.log('submitAnswer: Missing data.', {
+          questionsLength: questions.length,
+          isQuizOver,
+          lobbyId,
+          user: user?.id,
+        });
+        return;
+      }
 
       const currentQuestion = questions[currentQuestionIndex];
       const isCorrect = answer === currentQuestion.correct_answer;
+
+      console.log(
+        `Submitting answer: "${answer}", Correct: ${isCorrect} for question ID: ${currentQuestion.id}`
+      );
 
       if (isCorrect) {
         setScore((prev) => prev + 1);
@@ -216,9 +329,11 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
       // Move to next question or end quiz
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex((prev) => prev + 1);
+        console.log(`Moved to question index: ${currentQuestionIndex + 1}`);
       } else {
         // Player has finished all questions
         setIsQuizOver(true);
+        console.log('Quiz is now over.');
 
         try {
           console.log('Marking player as finished.');
@@ -247,9 +362,10 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
             .eq('lobby_id', lobbyId);
 
           if (error) {
-            console.error('Error checking players\' finished status:', error.message);
+            console.error("Error checking players' finished status:", error.message);
           } else {
             const allFinished = data.every((player: any) => player.finished);
+            console.log('All players finished:', allFinished);
             if (allFinished) {
               console.log('All players have finished. Updating lobby status to completed.');
               const { error: statusError } = await supabase
@@ -266,7 +382,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
               }
             } else {
               console.log('Not all players have finished yet.');
-              // Optionally, you can notify the player to wait for others
+              // Optionally, notify the player to wait for others
             }
           }
         } catch (error) {
@@ -288,26 +404,45 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
   );
 
   const fetchQuestions = useCallback(async () => {
-    if (!lobbyId || !subject) return;
+    if (!lobbyId || !subject) {
+      console.log('fetchQuestions: Missing lobbyId or subject.');
+      return;
+    }
 
-    const rawQuestions = await loadQuestionsBySubject(subject);
+    try {
+      console.log(`Fetching questions for subject: ${subject}`);
+      const rawQuestions = await loadQuestionsBySubject(subject);
 
-    // Shuffle all questions
-    const shuffledQuestions = shuffleArray(rawQuestions);
+      if (!Array.isArray(rawQuestions) || rawQuestions.length === 0) {
+        console.warn(`No questions found for subject "${subject}".`);
+        setQuestions([]);
+        setIsQuizOver(true);
+        return;
+      }
 
-    // Select up to 15 questions
-    const selectedQuestions = shuffledQuestions.slice(0, 15);
+      // Shuffle all questions
+      const shuffledQuestions = shuffleArray(rawQuestions);
 
-    // Shuffle answers for each selected question
-    const formattedQuestions: Question[] = selectedQuestions.map((q: RawQuestion) => ({
-      ...q,
-      all_answers: shuffleAnswers(q),
-    }));
+      // Select up to 15 questions
+      const selectedQuestions = shuffledQuestions.slice(0, 15);
 
-    setQuestions(formattedQuestions);
-    setCurrentQuestionIndex(0);
-    setScore(0);
-    setIsQuizOver(false);
+      // Shuffle answers for each selected question
+      const formattedQuestions: Question[] = selectedQuestions.map(
+        (q: RawQuestion) => ({
+          ...q,
+          all_answers: shuffleAnswers(q),
+        })
+      );
+
+      console.log('Formatted Questions:', formattedQuestions);
+
+      setQuestions(formattedQuestions);
+      setCurrentQuestionIndex(0);
+      setScore(0);
+      setIsQuizOver(false);
+    } catch (error) {
+      console.error('Error fetching questions:', error);
+    }
   }, [lobbyId, shuffleArray, shuffleAnswers, loadQuestionsBySubject, subject]);
 
   return (
@@ -320,7 +455,6 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
         lobbyId,
         submitAnswer,
         fetchQuestions,
-        subject, // Provide subject
       }}
     >
       {children}
@@ -331,7 +465,7 @@ export const QuizProvider: React.FC<{ children: ReactNode }> = ({
 export const useQuiz = () => {
   const context = useContext(QuizContext);
   if (!context) {
-    throw new Error('useQuiz must be used within a QuizProvider');
+    throw new Error('useQuiz must be used within QuizProvider');
   }
   return context;
 };

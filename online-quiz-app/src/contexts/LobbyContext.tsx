@@ -1,40 +1,49 @@
 // src/contexts/LobbyContext.tsx
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+// Define the Lobby interface
 interface Lobby {
   id: string;
   code: string;
   host: boolean;
-  subject: string | null; // Add subject to lobby state
+  subject: string | null;
   status: 'waiting' | 'in progress' | 'completed';
 }
 
+// Define the LobbyContextProps interface
 interface LobbyContextProps {
   lobby: Lobby | null;
   createLobby: () => Promise<void>;
   joinLobby: (name: string, code: string) => Promise<void>;
   startGame: () => Promise<void>;
   leaveLobby: () => Promise<void>;
-  updateSubject: (subject: string) => Promise<void>; // Exposed function
+  updateSubject: (subject: string) => Promise<void>;
+  loading: boolean;
 }
 
+// Create the LobbyContext
 const LobbyContext = createContext<LobbyContextProps | undefined>(undefined);
 
+// LobbyProvider component
 export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth(); // Access updateUser from AuthContext
   const [lobby, setLobby] = useState<Lobby | null>(null);
-  const navigate = useNavigate(); // Initialize navigate
+  const [loading, setLoading] = useState<boolean>(true);
+  const navigate = useNavigate();
 
   // Load lobby state from localStorage on mount
   useEffect(() => {
     const storedLobby = localStorage.getItem('lobby');
     if (storedLobby) {
-      setLobby(JSON.parse(storedLobby));
+      const parsedLobby: Lobby = JSON.parse(storedLobby);
+      setLobby(parsedLobby);
+      // Optionally, verify the lobby exists and the user is part of it
     }
+    setLoading(false);
   }, []);
 
   // Update localStorage whenever lobby state changes
@@ -83,6 +92,7 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     };
   }, [lobby, navigate]);
 
+  // Function to generate a unique lobby code
   const generateLobbyCode = async (): Promise<string> => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = '';
@@ -113,6 +123,7 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return code;
   };
 
+  // Create a new lobby
   const createLobby = async () => {
     if (!user) throw new Error('User not authenticated');
 
@@ -122,7 +133,7 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       // Insert new lobby with subject as null
       const { data: lobbyData, error: lobbyError } = await supabase
         .from('lobbies')
-        .insert([{ code, host_id: user.id, status: 'waiting', subject: null }]) // Initialize subject
+        .insert([{ code, host_id: user.id, status: 'waiting', subject: null }])
         .select('*')
         .single();
 
@@ -147,7 +158,7 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         code: lobbyData.code,
         host: true,
         status: lobbyData.status,
-        subject: lobbyData.subject, // Include subject
+        subject: lobbyData.subject,
       });
     } catch (error: any) {
       console.error('Create Lobby Error:', error.message || error);
@@ -155,19 +166,38 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
+  // Join an existing lobby
   const joinLobby = async (name: string, code: string) => {
     if (!user) throw new Error('User not authenticated');
 
     try {
-      // Update user's profile with the name
-      const { error: profileError } = await supabase
+      // Update user's profile with the name if not already set
+      const { data: existingProfile, error: fetchProfileError } = await supabase
         .from('profiles')
-        .update({ name })
-        .eq('id', user.id);
+        .select('*')
+        .eq('id', user.id)
+        .single();
 
-      if (profileError) {
-        console.error('Error updating profile:', profileError.message);
-        throw profileError;
+      if (fetchProfileError && fetchProfileError.code !== 'PGRST116') { // 'PGRST116' indicates no rows found
+        console.error('Error fetching profile:', fetchProfileError.message);
+        throw fetchProfileError;
+      }
+
+      if (!existingProfile || !existingProfile.name) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ name })
+          .eq('id', user.id)
+          .single();
+
+        if (profileError) {
+          console.error('Error updating profile:', profileError.message);
+          throw profileError;
+        }
+
+        // Update AuthContext's user
+        const updatedUser: UserProfile = { ...user, name, created_at: existingProfile?.created_at || new Date().toISOString() };
+        updateUser(updatedUser);
       }
 
       // Find lobby by code
@@ -186,6 +216,18 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         throw new Error('Cannot join a lobby that is already in progress or completed');
       }
 
+      // Check if the user is already part of the lobby
+      const { data: existingPlayer, error: existingPlayerError } = await supabase
+        .from('lobby_players')
+        .select('*')
+        .eq('lobby_id', lobbyData.id)
+        .eq('player_id', user.id)
+        .single();
+
+      if (existingPlayer) {
+        throw new Error('You are already a member of this lobby');
+      }
+
       // Add player to lobby_players
       const { error: playerError } = await supabase
         .from('lobby_players')
@@ -202,7 +244,7 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         code: lobbyData.code,
         host: false,
         status: lobbyData.status,
-        subject: lobbyData.subject, // Include subject
+        subject: lobbyData.subject,
       });
     } catch (error: any) {
       console.error('Join Lobby Error:', error.message || error);
@@ -210,6 +252,7 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
+  // Start the game (only for host)
   const startGame = async () => {
     if (!lobby || !lobby.host) throw new Error('Only the host can start the game');
 
@@ -219,7 +262,7 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         .from('lobbies')
         .update({ status: 'in progress' })
         .eq('id', lobby.id)
-        .select('*') // Ensure updated data is returned
+        .select('*')
         .single();
 
       if (error) {
@@ -239,6 +282,7 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
+  // Leave the lobby
   const leaveLobby = async () => {
     if (!lobby || !user) return;
 
@@ -262,14 +306,14 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
 
       setLobby(null);
-      navigate('/'); // Optionally navigate the user back to home
+      navigate('/register'); // Redirect to registration after leaving
     } catch (error: any) {
       console.error('Leave Lobby Error:', error.message || error);
       throw error;
     }
   };
 
-  // New function to update the subject
+  // Update the lobby's subject
   const updateSubject = async (subject: string) => {
     if (!lobby) {
       console.error('No lobby available to update the subject.');
@@ -313,7 +357,8 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         joinLobby,
         startGame,
         leaveLobby,
-        updateSubject, // Expose the new function
+        updateSubject,
+        loading,
       }}
     >
       {children}
@@ -321,10 +366,11 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   );
 };
 
+// Custom hook to use LobbyContext
 export const useLobby = () => {
   const context = useContext(LobbyContext);
   if (!context) {
-    throw new Error('useLobby must be used within a LobbyProvider');
+    throw new Error('useLobby must be used within LobbyProvider');
   }
   return context;
 };
