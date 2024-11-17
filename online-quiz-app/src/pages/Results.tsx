@@ -1,3 +1,5 @@
+// src/pages/Results.tsx
+
 import React, { useEffect, useState } from 'react';
 import { useQuiz } from '../contexts/QuizContext';
 import { supabase } from '../supabaseClient';
@@ -28,24 +30,24 @@ const Results: React.FC = () => {
 
         console.log('Fetching results for lobby:', lobbyId);
         const { data, error } = await supabase
-          .from('lobby_players')
+          .from('scores')
           .select(`
             player_id,
             profiles (name),
-            scores (score)
+            score
           `)
           .eq('lobby_id', lobbyId)
-          .order('score', { ascending: false, foreignTable: 'scores' });
+          .order('score', { ascending: false });
 
         if (error) {
-          console.error('Error fetching results:', error);
+          console.error('Error fetching results:', error.message);
         } else if (data.length === 0) {
           console.warn('No results found for this lobby.');
         } else {
-          const formattedResults: Result[] = data.map((item: any) => ({
-            player_id: item.player_id,
-            name: item.profiles?.name || 'Unknown',
-            score: item.scores?.score || 0,
+          const formattedResults: Result[] = data.map((scoreEntry: any) => ({
+            player_id: scoreEntry.player_id,
+            name: scoreEntry.profiles ? scoreEntry.profiles.name : 'Unknown',
+            score: scoreEntry.score,
           }));
           setResults(formattedResults);
           console.log('Fetched results:', formattedResults);
@@ -80,7 +82,8 @@ const Results: React.FC = () => {
             <li key={result.player_id} className="mb-2">
               <div className="card bg-base-200 shadow-md p-4 rounded-lg">
                 <p className="text-lg">
-                  <span className="font-bold">{index + 1}.</span> {result.name}: <span className="text-custom-blue font-bold">{result.score}</span> out of {totalQuestions} points
+                  <span className="font-bold">{index + 1}.</span> {result.name}:{' '}
+                  <span className="text-custom-blue font-bold">{result.score}</span> out of {totalQuestions} points
                 </p>
               </div>
             </li>
@@ -89,10 +92,7 @@ const Results: React.FC = () => {
       ) : (
         <p>No results available.</p>
       )}
-      <button
-        onClick={handleReturnHome}
-        className="btn btn-primary mt-6"
-      >
+      <button onClick={handleReturnHome} className="btn btn-primary mt-6">
         Return Home
       </button>
     </div>

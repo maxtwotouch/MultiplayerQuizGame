@@ -24,8 +24,29 @@ const Lobby: React.FC = () => {
           <p className="text-xl">
             Your Lobby Code: <strong className="text-custom-blue">{lobby.code}</strong>
           </p>
-          <PlayerList />
+
+          {/* Display the Subject */}
+          <p className="text-lg">
+            Subject: {' '}
+            {lobby.subject ? (
+              <strong className="text-custom-blue">{lobby.subject}</strong>
+            ) : (
+              <span className="text-gray-500">No subject selected yet.</span>
+            )}
+          </p>
+
+          {/* If the user is the host, show the SubjectSelector */}
           {lobby.host && <SubjectSelector />}
+
+          {/* Inform players if subject is not yet selected */}
+          {!lobby.subject && !lobby.host && (
+            <p className="text-gray-500 mt-2">
+              Waiting for the host to select a subject...
+            </p>
+          )}
+
+          <PlayerList />
+
           <div className="flex space-x-4 mt-4">
             {lobby.host && <StartGameButton />}
             <LeaveLobbyButton />

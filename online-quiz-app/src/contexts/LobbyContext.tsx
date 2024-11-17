@@ -167,90 +167,91 @@ export const LobbyProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   // Join an existing lobby
-  const joinLobby = async (name: string, code: string) => {
-    if (!user) throw new Error('User not authenticated');
+ // Joining a lobby
+const joinLobby = async (name: string, code: string) => {
+  if (!user) throw new Error('User not authenticated');
 
-    try {
-      // Update user's profile with the name if not already set
-      const { data: existingProfile, error: fetchProfileError } = await supabase
+  try {
+    // Update user's profile with the name if not already set
+    const { data: existingProfile, error: fetchProfileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (fetchProfileError && fetchProfileError.code !== 'PGRST116') {
+      console.error('Error fetching profile:', fetchProfileError.message);
+      throw fetchProfileError;
+    }
+
+    if (!existingProfile || !existingProfile.name) {
+      const { error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .update({ name })
         .eq('id', user.id)
         .single();
 
-      if (fetchProfileError && fetchProfileError.code !== 'PGRST116') { // 'PGRST116' indicates no rows found
-        console.error('Error fetching profile:', fetchProfileError.message);
-        throw fetchProfileError;
+      if (profileError) {
+        console.error('Error updating profile:', profileError.message);
+        throw profileError;
       }
 
-      if (!existingProfile || !existingProfile.name) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ name })
-          .eq('id', user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Error updating profile:', profileError.message);
-          throw profileError;
-        }
-
-        // Update AuthContext's user
-        const updatedUser: UserProfile = { ...user, name, created_at: existingProfile?.created_at || new Date().toISOString() };
-        updateUser(updatedUser);
-      }
-
-      // Find lobby by code
-      const { data: lobbyData, error: lobbyError } = await supabase
-        .from('lobbies')
-        .select('*')
-        .eq('code', code)
-        .single();
-
-      if (lobbyError) {
-        console.error('Error finding lobby:', lobbyError.message);
-        throw lobbyError;
-      }
-
-      if (lobbyData.status !== 'waiting') {
-        throw new Error('Cannot join a lobby that is already in progress or completed');
-      }
-
-      // Check if the user is already part of the lobby
-      const { data: existingPlayer, error: existingPlayerError } = await supabase
-        .from('lobby_players')
-        .select('*')
-        .eq('lobby_id', lobbyData.id)
-        .eq('player_id', user.id)
-        .single();
-
-      if (existingPlayer) {
-        throw new Error('You are already a member of this lobby');
-      }
-
-      // Add player to lobby_players
-      const { error: playerError } = await supabase
-        .from('lobby_players')
-        .insert([{ lobby_id: lobbyData.id, player_id: user.id }])
-        .single();
-
-      if (playerError) {
-        console.error('Error joining lobby:', playerError.message);
-        throw playerError;
-      }
-
-      setLobby({
-        id: lobbyData.id,
-        code: lobbyData.code,
-        host: false,
-        status: lobbyData.status,
-        subject: lobbyData.subject,
-      });
-    } catch (error: any) {
-      console.error('Join Lobby Error:', error.message || error);
-      throw error;
+      const updatedUser = { ...user, name, created_at: existingProfile?.created_at || new Date().toISOString() };
+      updateUser(updatedUser);
     }
-  };
+
+    // Find lobby by code
+    const { data: lobbyData, error: lobbyError } = await supabase
+      .from('lobbies')
+      .select('*')
+      .eq('code', code)
+      .single();
+
+    if (lobbyError) {
+      console.error('Error finding lobby:', lobbyError.message);
+      throw lobbyError;
+    }
+
+    if (lobbyData.status !== 'waiting') {
+      throw new Error('Cannot join a lobby that is already in progress or completed');
+    }
+
+    // Check if the user is already part of the lobby
+    const { data: existingPlayer } = await supabase
+      .from('lobby_players')
+      .select('*')
+      .eq('lobby_id', lobbyData.id)
+      .eq('player_id', user.id)
+      .single();
+
+    if (existingPlayer) {
+      throw new Error('You are already a member of this lobby');
+    }
+
+    // Add player to lobby_players
+    const { error: playerError } = await supabase
+      .from('lobby_players')
+      .insert([{ lobby_id: lobbyData.id, player_id: user.id }])
+      .single();
+
+    if (playerError) {
+      console.error('Error joining lobby:', playerError.message);
+      throw playerError;
+    }
+
+    setLobby({
+      id: lobbyData.id,
+      code: lobbyData.code,
+      host: false,
+      status: lobbyData.status,
+      subject: lobbyData.subject,
+    });
+  } catch (error: any) {
+    console.error('Join Lobby Error:', error.message || error);
+    throw error;
+  }
+};
+
 
   // Start the game (only for host)
   const startGame = async () => {

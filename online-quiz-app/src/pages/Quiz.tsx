@@ -74,12 +74,12 @@ const Quiz: React.FC = () => {
     await submitAnswer(selectedAnswer);
     setSubmitting(false);
 
-  //   // Show a toast notification
-  //   if (correct) {
-  //     toast.success('Correct Answer!');
-  //   } else {
-  //     toast.error('Incorrect Answer.');
-  //   }
+    // Show a toast notification
+    if (correct) {
+      toast.success('Correct Answer!');
+    } else {
+      toast.error('Incorrect Answer.');
+    }
   };
 
   if (isQuizOver) {
@@ -96,6 +96,17 @@ const Quiz: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto bg-base-100 dark:bg-base-200 p-8 rounded-lg shadow-lg mt-8">
       <h2 className="text-3xl mb-4 text-custom-blue">Quiz Time!</h2>
+
+      {/* Display the Subject */}
+      <p className="mb-4 text-lg">
+        Subject: {' '}
+        {lobby.subject ? (
+          <strong className="text-custom-blue">{lobby.subject}</strong>
+        ) : (
+          <span className="text-gray-500">No subject selected.</span>
+        )}
+      </p>
+
       <p className="mb-4 text-xl">
         Question {currentQuestionIndex + 1} of {questions.length}
       </p>

@@ -1,0 +1,123 @@
+[
+    {
+      "id": "1",
+      "question": "In which year was Liverpool FC founded?",
+      "correct_answer": "1892",
+      "wrong_answers": ["1878", "1901", "1920"]
+    },
+    {
+      "id": "2",
+      "question": "What is the name of Liverpool's home stadium?",
+      "correct_answer": "Anfield",
+      "wrong_answers": ["Old Trafford", "Stamford Bridge", "Etihad Stadium"]
+    },
+    {
+      "id": "3",
+      "question": "Who is Liverpool's all-time leading goal scorer?",
+      "correct_answer": "Ian Rush",
+      "wrong_answers": ["Steven Gerrard", "Robbie Fowler", "Kenny Dalglish"]
+    },
+    {
+      "id": "4",
+      "question": "Which song is famously associated with Liverpool FC?",
+      "correct_answer": "You'll Never Walk Alone",
+      "wrong_answers": ["Hey Jude", "We Are The Champions", "Glory Glory"]
+    },
+    {
+      "id": "5",
+      "question": "Who managed Liverpool to their first Premier League title in 2020?",
+      "correct_answer": "Jürgen Klopp",
+      "wrong_answers": ["Rafael Benítez", "Kenny Dalglish", "Brendan Rodgers"]
+    },
+    {
+      "id": "6",
+      "question": "How many UEFA Champions League titles has Liverpool won?",
+      "correct_answer": "6",
+      "wrong_answers": ["4", "5", "7"]
+    },
+    {
+      "id": "7",
+      "question": "What color are Liverpool's home kits?",
+      "correct_answer": "Red",
+      "wrong_answers": ["Blue", "Green", "White"]
+    },
+    {
+      "id": "8",
+      "question": "Which Liverpool player scored a hat-trick in the 2005 UEFA Champions League final?",
+      "correct_answer": "No Liverpool player scored a hat-trick.",
+      "wrong_answers": ["Steven Gerrard", "Djibril Cissé", "Xabi Alonso"]
+    },
+    {
+      "id": "9",
+      "question": "What is the nickname of Liverpool FC?",
+      "correct_answer": "The Reds",
+      "wrong_answers": ["The Blues", "The Gunners", "The Toffees"]
+    },
+    {
+      "id": "10",
+      "question": "Who scored the winning goal for Liverpool in the 2005 UEFA Champions League final penalty shootout?",
+      "correct_answer": "Andriy Shevchenko missed his penalty; Liverpool won.",
+      "wrong_answers": ["Steven Gerrard", "Jerzy Dudek", "Luis García"]
+    },
+    {
+      "id": "11",
+      "question": "Which Liverpool player won the Ballon d'Or in 2001?",
+      "correct_answer": "Michael Owen",
+      "wrong_answers": ["Steven Gerrard", "Robbie Fowler", "Fernando Torres"]
+    },
+    {
+      "id": "12",
+      "question": "Which rival team does Liverpool face in the 'Merseyside Derby'?",
+      "correct_answer": "Everton",
+      "wrong_answers": ["Manchester United", "Chelsea", "Manchester City"]
+    },
+    {
+      "id": "13",
+      "question": "Which Liverpool player scored the fastest Premier League hat-trick?",
+      "correct_answer": "Sadio Mané",
+      "wrong_answers": ["Robbie Fowler", "Fernando Torres", "Luis Suárez"]
+    },
+    {
+      "id": "14",
+      "question": "How many English league titles has Liverpool won?",
+      "correct_answer": "19",
+      "wrong_answers": ["18", "20", "17"]
+    },
+    {
+      "id": "15",
+      "question": "Who is Liverpool's current owner (2024)?",
+      "correct_answer": "Fenway Sports Group",
+      "wrong_answers": ["Glazer Family", "Roman Abramovich", "Sheikh Mansour"]
+    },
+    {
+      "id": "16",
+      "question": "Who succeeded Bill Shankly as Liverpool's manager?",
+      "correct_answer": "Bob Paisley",
+      "wrong_answers": ["Kenny Dalglish", "Joe Fagan", "Roy Evans"]
+    },
+    {
+      "id": "17",
+      "question": "What is the maximum capacity of Anfield after its latest renovation?",
+      "correct_answer": "54,000",
+      "wrong_answers": ["40,000", "60,000", "50,000"]
+    },
+    {
+      "id": "18",
+      "question": "Which Liverpool player is nicknamed 'Captain Fantastic'?",
+      "correct_answer": "Steven Gerrard",
+      "wrong_answers": ["Jordan Henderson", "Jamie Carragher", "Graeme Souness"]
+    },
+    {
+      "id": "19",
+      "question": "Who was Liverpool's captain during their 2005 Champions League triumph?",
+      "correct_answer": "Steven Gerrard",
+      "wrong_answers": ["Sami Hyypiä", "Dietmar Hamann", "Xabi Alonso"]
+    },
+    {
+      "id": "20",
+      "question": "What is the name of Liverpool's training ground?",
+      "correct_answer": "AXA Training Centre",
+      "wrong_answers": ["Melwood", "Carrington", "Cobham"]
+    }
+  ]
+  
